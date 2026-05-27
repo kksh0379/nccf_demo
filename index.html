@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>통합회원 CMS</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c0f16;--bg2:#111623;--bg3:#171d2e;--bg4:#1e2640;--bg5:#263050;
+  --bdr:#232e48;--bdr2:#2e3b5c;
+  --pri:#00b4d8;--pri-d:rgba(0,180,216,.1);--pri-m:rgba(0,180,216,.22);
+  --acc:#48cae4;--sec:#0096c7;
+  --mint:#06d6a0;--mint-d:rgba(6,214,160,.1);
+  --coral:#ef476f;--coral-d:rgba(239,71,111,.1);
+  --amber:#ffd166;--amber-d:rgba(255,209,102,.1);
+  --purple:#a78bfa;--purple-d:rgba(167,139,250,.1);
+  --txt:#e4e9f2;--txt2:#9aa4bc;--txt3:#6a7694;--txt4:#4a5572;
+  --side:232px;--head:56px;--rad:8px;--rad-s:5px;
+  --tr:.18s cubic-bezier(.4,0,.2,1);
+}
+html{font-size:13px}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px}
+
+.app{display:flex;min-height:100vh}
+
+/* ══ Sidebar ══ */
+.side{width:var(--side);background:var(--bg2);border-right:1px solid var(--bdr);position:fixed;top:0;left:0;bottom:0;display:flex;flex-direction:column;z-index:100}
+.side-logo{height:var(--head);display:flex;align-items:center;padding:0 16px;gap:8px;border-bottom:1px solid var(--bdr)}
+.side-logo .ico{width:28px;height:28px;background:linear-gradient(135deg,var(--pri),var(--acc));border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--bg)}
+.side-logo span{font-weight:700;font-size:14px;background:linear-gradient(135deg,var(--pri),var(--acc));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.side-nav{flex:1;padding:10px 8px;overflow-y:auto}
+.nav-g{margin-bottom:14px}
+.nav-g-label{font-size:9px;font-weight:700;color:var(--txt4);text-transform:uppercase;letter-spacing:1.2px;padding:0 10px;margin-bottom:4px}
+.ni{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--rad-s);cursor:pointer;transition:all var(--tr);color:var(--txt2);font-size:12px;position:relative}
+.ni:hover{background:var(--bg3);color:var(--txt)}
+.ni.act{background:var(--pri-d);color:var(--pri);font-weight:600}
+.ni.act::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:16px;background:var(--pri);border-radius:2px}
+.ni svg{width:16px;height:16px;flex-shrink:0;opacity:.6}
+.ni.act svg{opacity:1}
+.ni .cnt{margin-left:auto;font-size:9px;font-weight:600;background:var(--bg4);color:var(--txt3);padding:1px 6px;border-radius:8px}
+.ni.act .cnt{background:var(--pri-m);color:var(--pri)}
+.ni-sub{padding-left:34px;font-size:11px}
+.side-ft{padding:10px;border-top:1px solid var(--bdr)}
+.side-ft .uc{display:flex;align-items:center;gap:8px;padding:8px;border-radius:var(--rad-s);background:var(--bg3)}
+.side-ft .av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--pri),var(--mint));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--bg)}
+.side-ft .nm{font-size:11px;font-weight:600}.side-ft .rl{font-size:9px;color:var(--txt3)}
+
+/* ══ Main ══ */
+.mn{flex:1;margin-left:var(--side);display:flex;flex-direction:column}
+.hd{height:var(--head);display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--bdr);background:var(--bg2);position:sticky;top:0;z-index:50}
+.hd-title{font-size:15px;font-weight:700}
+.hd-sub{font-size:11px;color:var(--txt3);margin-top:1px}
+.hd-r{display:flex;gap:8px}
+.hd-btn{width:32px;height:32px;border-radius:var(--rad-s);background:var(--bg3);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--txt2);transition:all var(--tr)}
+.hd-btn:hover{background:var(--bg4);color:var(--txt)}
+.hd-btn svg{width:16px;height:16px}
+.ct{flex:1;padding:20px 24px}
+
+/* ══ Screens ══ */
+.scr{display:none;animation:fi .3s ease}.scr.on{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ══ Tabs ══ */
+.tabs{display:flex;gap:2px;background:var(--bg3);border-radius:var(--rad);padding:3px;margin-bottom:20px;width:fit-content}
+.tab{padding:7px 16px;border-radius:var(--rad-s);font-size:11px;font-weight:500;color:var(--txt3);cursor:pointer;transition:all var(--tr);white-space:nowrap}
+.tab:hover{color:var(--txt2)}
+.tab.on{background:var(--bg);color:var(--pri);font-weight:600;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+
+/* ══ Stats ══ */
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px}
+.sc{background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--rad);padding:16px;position:relative;overflow:hidden;transition:all var(--tr)}
+.sc::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--sc-c,var(--pri));opacity:0;transition:opacity var(--tr)}
+.sc:hover{border-color:var(--bdr2);transform:translateY(-1px)}.sc:hover::after{opacity:1}
+.sc-l{font-size:11px;color:var(--txt3);margin-bottom:6px}
+.sc-v{font-size:24px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--sc-c,var(--pri))}
+.sc-d{display:inline-flex;align-items:center;gap:3px;margin-top:6px;font-size:10px;font-weight:500;padding:2px 7px;border-radius:12px}
+.sc-d.up{background:var(--mint-d);color:var(--mint)}.sc-d.dn{background:var(--coral-d);color:var(--coral)}.sc-d.nt{background:rgba(100,115,150,.1);color:var(--txt3)}
+
+/* ══ Cards ══ */
+.cd{background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--rad);overflow:hidden}
+.cd-h{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bdr)}
+.cd-t{font-size:13px;font-weight:600}.cd-b{padding:16px}
+
+/* ══ Chart ══ */
+.cg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.bars{display:flex;align-items:flex-end;gap:10px;height:190px;padding-top:18px}
+.bc{flex:1;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px}
+.br{width:100%;max-width:70px;flex-shrink:0;border-radius:5px 5px 0 0;background:linear-gradient(180deg,var(--bar-c,var(--pri)),var(--sec));min-height:18px;cursor:pointer;transition:all .3s;position:relative;box-shadow:0 -10px 24px rgba(0,180,216,.10)}
+.br:hover{filter:brightness(1.2);transform:scaleX(1.06)}
+.br::after{content:attr(data-v);position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:600;color:var(--txt);opacity:0;transition:opacity var(--tr)}
+.br:hover::after{opacity:1}
+.bl{font-size:9px;color:var(--txt3)}
+.donut{width:130px;height:130px;border-radius:50%;position:relative;transition:transform .3s}
+.donut:hover{transform:scale(1.04)}
+.donut::after{content:'';position:absolute;top:24px;left:24px;right:24px;bottom:24px;background:var(--bg3);border-radius:50%}
+.dleg{display:flex;flex-direction:column;gap:8px}
+.dl{display:flex;align-items:center;gap:6px;font-size:11px}
+.dd{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.dp{font-family:'JetBrains Mono',monospace;font-weight:500;margin-left:auto;font-size:11px}
+
+/* ══ Table ══ */
+.tb-bar{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.sr{flex:1;min-width:200px;display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--rad-s);padding:7px 12px;transition:border-color var(--tr)}
+.sr:focus-within{border-color:var(--pri)}
+.sr svg{width:14px;height:14px;color:var(--txt3);flex-shrink:0}
+.sr input{flex:1;background:none;border:none;outline:none;font-family:inherit;font-size:12px;color:var(--txt)}
+.sr input::placeholder{color:var(--txt4)}
+.chips{display:flex;gap:4px;flex-wrap:wrap}
+.ch{padding:5px 11px;border-radius:14px;font-size:11px;font-weight:500;background:var(--bg3);border:1px solid var(--bdr);color:var(--txt2);cursor:pointer;transition:all var(--tr);white-space:nowrap}
+.ch:hover{border-color:var(--bdr2);color:var(--txt)}.ch.on{background:var(--pri-d);border-color:var(--pri);color:var(--pri)}
+
+/* Marketing tag chips */
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:500;margin:1px;cursor:default}
+.tag-aac{background:var(--purple-d);color:var(--purple)}
+.tag-ai{background:var(--pri-d);color:var(--pri)}
+.tag-proj{background:var(--mint-d);color:var(--mint)}
+.tag-donate{background:var(--amber-d);color:var(--amber)}
+.tag-event{background:rgba(251,146,60,.1);color:#fb923c}
+.tag-news{background:rgba(129,140,248,.1);color:#818cf8}
+.tag-dormant{background:var(--coral-d);color:var(--coral)}
+.tag-child{background:rgba(244,114,182,.1);color:#f472b6}
+.tag-org{background:rgba(148,163,184,.1);color:#94a3b8}
+
+.dt{width:100%;border-collapse:separate;border-spacing:0}
+.dt th{text-align:left;font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.4px;padding:8px 12px;background:var(--bg4);border-bottom:1px solid var(--bdr)}
+.dt th:first-child{border-radius:var(--rad-s) 0 0 0}.dt th:last-child{border-radius:0 var(--rad-s) 0 0}
+.dt td{padding:10px 12px;font-size:12px;border-bottom:1px solid var(--bdr);transition:background var(--tr)}
+.dt tbody tr{cursor:pointer}.dt tbody tr:hover td{background:var(--bg4)}
+.uc2{display:flex;align-items:center;gap:8px}
+.uc2 .av2{width:28px;height:28px;border-radius:50%;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--pri);flex-shrink:0}
+
+/* ══ Badges ══ */
+.bd{display:inline-flex;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600}
+.bd-pri{background:var(--pri-d);color:var(--pri)}.bd-mt{background:var(--mint-d);color:var(--mint)}
+.bd-am{background:var(--amber-d);color:var(--amber)}.bd-co{background:var(--coral-d);color:var(--coral)}
+.bd-mu{background:rgba(100,115,150,.1);color:var(--txt3)}
+
+/* ══ Buttons ══ */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--rad-s);font-family:inherit;font-size:12px;font-weight:600;border:none;cursor:pointer;transition:all var(--tr)}
+.btn-p{background:var(--pri);color:var(--bg)}.btn-p:hover{filter:brightness(1.1)}
+.btn-g{background:transparent;color:var(--txt2);border:1px solid var(--bdr)}.btn-g:hover{background:var(--bg3);color:var(--txt)}
+
+/* ══ Detail panel (replaces list) ══ */
+.detail-view{animation:fi .25s ease}
+.back{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--txt3);cursor:pointer;margin-bottom:14px;transition:color var(--tr)}
+.back:hover{color:var(--txt)}
+.back svg{width:13px;height:13px}
+.prof{display:flex;align-items:center;gap:16px;padding:20px;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--rad);margin-bottom:16px;position:relative}
+.prof-av{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--pri),var(--acc));display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:var(--bg);flex-shrink:0}
+.prof-nm{font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.prof-meta{color:var(--txt2);font-size:12px;margin-top:3px}
+.prof-id{color:var(--txt3);font-size:11px;margin-top:2px;font-family:'JetBrains Mono',monospace}
+.prof-tags{display:flex;flex-wrap:wrap;gap:3px;margin-top:6px}
+.prof-act{position:absolute;top:16px;right:16px;display:flex;gap:6px}
+.dg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.ir{display:flex;padding:8px 0;border-bottom:1px solid var(--bdr)}.ir:last-child{border-bottom:none}
+.il{width:90px;color:var(--txt3);font-size:11px;flex-shrink:0}.iv{font-size:12px}
+.svc-sec{margin-bottom:12px}
+.svc-sec-h{display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--bg4);border-radius:var(--rad) var(--rad) 0 0;border:1px solid var(--bdr);border-bottom:none}
+.svc-sec-h .dot{width:8px;height:8px;border-radius:50%}
+.svc-sec-h .nm{font-size:12px;font-weight:600}
+.svc-sec-b{padding:14px 16px;background:var(--bg3);border:1px solid var(--bdr);border-top:none;border-radius:0 0 var(--rad) var(--rad)}
+.timeline{position:relative;padding-left:20px}
+.timeline::before{content:'';position:absolute;left:4px;top:6px;bottom:6px;width:1px;background:var(--bdr)}
+.tl-i{position:relative;padding-bottom:14px}.tl-i:last-child{padding-bottom:0}
+.tl-d{position:absolute;left:-20px;top:3px;width:8px;height:8px;border-radius:50%;border:2px solid var(--bg3)}
+.tl-t{font-size:10px;color:var(--txt3);font-family:'JetBrains Mono',monospace}.tl-e{font-size:12px;margin-top:1px}
+
+/* Consent */
+.pb{width:70px;height:5px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.pf{height:100%;border-radius:3px;transition:width .5s ease}
+
+/* Pagination */
+.pag{display:flex;align-items:center;justify-content:center;gap:3px;margin-top:12px;padding:10px 0}
+.pg{width:28px;height:28px;border-radius:var(--rad-s);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;background:transparent;border:none;color:var(--txt3);cursor:pointer;transition:all var(--tr)}
+.pg:hover{background:var(--bg3);color:var(--txt)}.pg.on{background:var(--pri-d);color:var(--pri);font-weight:600}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--bg4);border:1px solid var(--bdr2);border-radius:var(--rad);padding:12px 18px;font-size:12px;box-shadow:0 8px 28px rgba(0,0,0,.4);transform:translateY(80px);opacity:0;transition:all .3s;z-index:200}
+.toast.show{transform:translateY(0);opacity:1}
+
+/* Activity row */
+.ar{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bdr);font-size:12px}
+.ar:last-child{border-bottom:none}
+.ar-t{width:80px;color:var(--txt3);font-size:11px;font-family:'JetBrains Mono',monospace}
+.ar-e{flex:1}.ar-s{color:var(--txt3);font-size:11px}
+
+/* Segment bar chart */
+.seg-bars{display:flex;flex-direction:column;gap:8px}
+.seg-row{display:flex;align-items:center;gap:10px}
+.seg-label{width:110px;font-size:11px;color:var(--txt2);text-align:right;flex-shrink:0}
+.seg-track{flex:1;height:20px;background:var(--bg4);border-radius:3px;overflow:hidden;position:relative}
+.seg-fill{height:100%;border-radius:3px;transition:width .6s ease;display:flex;align-items:center;padding-left:6px}
+.seg-fill span{font-size:9px;font-weight:600;color:var(--bg);white-space:nowrap}
+.seg-val{width:50px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--txt2)}
+
+/* version row */
+.vr{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bdr);font-size:12px}
+.vr:last-child{border-bottom:none}
+.vt{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;padding:2px 7px;border-radius:var(--rad-s);background:var(--pri-d);color:var(--pri)}
+
+
+
+/* ══ Login ══ */
+.login{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 20% 20%,rgba(0,180,216,.16),transparent 32%),radial-gradient(circle at 80% 10%,rgba(167,139,250,.14),transparent 28%),var(--bg);padding:28px}
+.login-card{width:960px;max-width:100%;display:grid;grid-template-columns:1.08fr .92fr;background:rgba(17,22,35,.92);border:1px solid var(--bdr2);border-radius:18px;overflow:hidden;box-shadow:0 28px 80px rgba(0,0,0,.45)}
+.login-info{padding:42px;background:linear-gradient(135deg,rgba(0,180,216,.12),rgba(6,214,160,.06));border-right:1px solid var(--bdr)}
+.login-kicker{font-size:11px;color:var(--acc);font-weight:700;letter-spacing:.9px;margin-bottom:12px}
+.login-title{font-size:30px;line-height:1.28;font-weight:800;margin-bottom:14px}
+.login-desc{font-size:13px;color:var(--txt2);line-height:1.75;margin-bottom:26px}
+.login-points{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.login-point{background:rgba(12,15,22,.45);border:1px solid var(--bdr);border-radius:10px;padding:12px}
+.login-point b{display:block;font-size:12px;color:var(--txt);margin-bottom:4px}.login-point span{font-size:10px;color:var(--txt3);line-height:1.45}
+.login-form{padding:42px;display:flex;flex-direction:column;justify-content:center}
+.login-logo{display:flex;align-items:center;gap:9px;margin-bottom:26px}.login-logo .ico{width:34px;height:34px;background:linear-gradient(135deg,var(--pri),var(--acc));border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--bg)}
+.login-logo span{font-size:16px;font-weight:800}.login-field{margin-bottom:12px}.login-field label{display:block;font-size:11px;color:var(--txt3);margin-bottom:6px}
+.login-field input{width:100%;height:42px;border-radius:8px;border:1px solid var(--bdr);background:var(--bg3);color:var(--txt);padding:0 12px;font-family:inherit;outline:none}.login-field input:focus{border-color:var(--pri)}
+.login-opt{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--txt3);margin:4px 0 20px}.login-opt a{color:var(--pri);text-decoration:none}
+.login-btn{height:44px;border-radius:9px;border:none;background:linear-gradient(135deg,var(--pri),var(--acc));color:var(--bg);font-weight:800;font-family:inherit;cursor:pointer}.login-note{font-size:10px;color:var(--txt4);margin-top:14px;line-height:1.5}
+.app{display:none}.app.ready{display:flex}
+
+/* ══ Strategy cards ══ */
+.strategy-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.strategy-card{background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--rad);padding:16px}.strategy-card .num{font-family:'JetBrains Mono',monospace;color:var(--pri);font-size:11px;font-weight:700;margin-bottom:8px}.strategy-card h3{font-size:13px;margin-bottom:8px}.strategy-card p{font-size:11px;color:var(--txt2);line-height:1.6}
+.flow3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}.flow-card{background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--rad);overflow:hidden}.flow-card h3{font-size:13px;padding:12px 14px;border-bottom:1px solid var(--bdr)}.flow-card ul{list-style:none;padding:12px 14px}.flow-card li{font-size:11px;color:var(--txt2);padding:6px 0;border-bottom:1px solid rgba(35,46,72,.6)}.flow-card li:last-child{border-bottom:none}
+@media(max-width:900px){.login-card{grid-template-columns:1fr}.login-info{border-right:none;border-bottom:1px solid var(--bdr)}.login-points,.strategy-grid,.flow3{grid-template-columns:1fr}}
+
+
+/* service icons & internal login refinement */
+.svc-ico{width:18px;height:18px;border-radius:5px;object-fit:contain;background:#fff;padding:2px;flex-shrink:0}
+.svc-ico.home{background:linear-gradient(135deg,#111827,#374151);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;letter-spacing:-.2px}
+.service-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-bottom:20px}
+.svcmetric{background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--rad);padding:14px}
+.svcmetric-h{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;margin-bottom:10px}.svcmetric-v{font-size:22px;font-weight:800;font-family:'JetBrains Mono',monospace}.svcmetric-d{font-size:13px;color:var(--txt2);margin-top:4px}.mini-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}.mini-kpi{background:var(--bg4);border-radius:7px;padding:8px}.mini-kpi b{display:block;font-size:13px;font-family:'JetBrains Mono',monospace}.mini-kpi span{font-size:9px;color:var(--txt3)}
+.platform-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.platform-card{background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--rad);padding:16px}.platform-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.platform-title{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800}.platform-total{font-size:13px;color:var(--txt2);font-weight:600}.channel-list{display:flex;flex-direction:column;gap:10px}.channel-row{display:grid;grid-template-columns:150px 1fr 64px 88px;gap:10px;align-items:center}.channel-name{font-size:14px;color:var(--txt2);display:flex;align-items:center;gap:6px}.channel-badge{font-size:11px;padding:2px 7px;border-radius:8px;background:var(--bg4);color:var(--txt3);white-space:nowrap}.channel-track{height:12px;background:var(--bg4);border-radius:20px;overflow:hidden}.channel-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--pri),var(--acc))}.channel-rate{font-size:14px;font-weight:800;font-family:'JetBrains Mono',monospace}.channel-time{font-size:13px;color:var(--txt2);font-family:'JetBrains Mono',monospace}.dash-note{font-size:15px;color:var(--txt2);line-height:1.7;margin-top:14px;padding:14px 16px;background:rgba(255,255,255,.035);border:1px solid var(--bdr);border-radius:var(--rad)}.chart-summary{display:flex;gap:8px;margin-top:12px}.chart-chip{background:var(--bg4);border:1px solid var(--bdr);border-radius:8px;padding:10px 12px;flex:1}.chart-chip b{display:block;font-size:16px;font-family:'JetBrains Mono',monospace}.chart-chip span{font-size:12px;color:var(--txt3)}
+.login{background:#f6f7f9;color:#202124;padding:40px}.login-card{width:920px;background:#fff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 20px 50px rgba(16,24,40,.12);grid-template-columns:.9fr 1.1fr}.login-info{background:#111827;color:#fff;border-right:0;padding:44px}.login-kicker{color:#a7f3d0}.login-title{font-size:27px}.login-desc{color:#d1d5db}.login-point{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14)}.login-point b{color:#fff}.login-point span{color:#cbd5e1}.login-form{background:#fff;color:#202124}.login-logo{align-items:flex-start;flex-direction:column;gap:4px;margin-bottom:28px}.ci-word{font-size:24px;font-weight:900;letter-spacing:-.8px;color:#111827}.ci-sub{font-size:12px;color:#6b7280;font-weight:600}.login-field label{color:#4b5563}.login-field input{background:#f9fafb;border:1px solid #d1d5db;color:#111827}.login-field input:focus{border-color:#111827}.login-opt{color:#6b7280}.login-opt a{color:#111827}.login-btn{background:#111827;color:#fff}.login-note{color:#6b7280}
+
+
+.mfa-panel{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(17,24,39,.54);backdrop-filter:blur(3px);z-index:500;padding:24px}.mfa-panel.show{display:flex;animation:fi .18s ease}.mfa-dialog{width:420px;max-width:100%;background:#fff;color:#111827;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 30px 90px rgba(0,0,0,.28);overflow:hidden}.mfa-top{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid #eef0f3}.mfa-head{display:flex;flex-direction:column;gap:3px}.mfa-head b{font-size:16px;color:#111827}.mfa-head span{font-size:11px;color:#6b7280}.mfa-close{width:30px;height:30px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;color:#6b7280;cursor:pointer;font-size:18px;line-height:1}.mfa-close:hover{background:#f9fafb;color:#111827}.mfa-body{padding:20px}.mfa-account{display:flex;align-items:center;gap:10px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;margin-bottom:14px}.mfa-account .lock{width:28px;height:28px;border-radius:8px;background:#111827;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px}.mfa-account b{font-size:12px}.mfa-account span{display:block;font-size:10px;color:#6b7280;margin-top:1px}.mfa-code{display:flex;justify-content:center;gap:8px;margin:0 auto 10px;width:100%;max-width:224px;overflow:hidden}.mfa-code input{width:50px;min-width:0;height:50px;text-align:center;border:1px solid #d1d5db;border-radius:9px;background:#fff;color:#111827;font-size:20px;font-weight:800;font-family:'JetBrains Mono',monospace;box-sizing:border-box;padding:0}.mfa-code input::-webkit-outer-spin-button,.mfa-code input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}.mfa-code input:focus{outline:none;border-color:#111827;box-shadow:0 0 0 3px rgba(17,24,39,.08)}.mfa-meta{font-size:11px;color:#6b7280;margin-bottom:14px;line-height:1.55}.mfa-actions{display:flex;gap:8px}.mfa-secondary{height:42px;flex:1;border-radius:9px;border:1px solid #d1d5db;background:#fff;color:#374151;font-weight:700;font-family:inherit;cursor:pointer}.mfa-secondary:hover{background:#f9fafb}.mfa-btn{height:42px;flex:1;width:auto}
+.editor-toolbar{display:flex;gap:4px;flex-wrap:wrap;background:var(--bg4);border:1px solid var(--bdr);border-bottom:none;border-radius:8px 8px 0 0;padding:7px}.ed-btn{height:26px;min-width:28px;border:1px solid var(--bdr2);background:var(--bg3);color:var(--txt2);border-radius:5px;font-size:10px;font-weight:700;cursor:pointer}.ed-btn:hover{color:var(--txt);border-color:var(--pri)}.email-editor{min-height:245px;background:var(--bg3);border:1px solid var(--bdr);border-radius:0 0 8px 8px;padding:14px;line-height:1.7;font-size:12px;color:var(--txt);outline:none}.email-editor:focus{border-color:var(--pri)}.email-editor h3{font-size:16px;margin:0 0 10px}.email-editor ul{margin:8px 0 8px 18px}.email-editor .cta{display:inline-block;margin-top:10px;padding:8px 12px;border-radius:6px;background:var(--pri);color:var(--bg);font-weight:800}.sms-counter{text-align:right;font-size:10px;color:var(--txt3);margin-top:4px}
+
+/* Advanced search & communication */
+.filter-panel{background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--rad);padding:14px;margin-bottom:14px}
+.filter-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;font-size:12px;font-weight:700;color:var(--txt2)}
+.filter-grid{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));gap:10px}
+.fg{display:flex;flex-direction:column;gap:5px}.fg label{font-size:10px;color:var(--txt3)}
+.fg input,.fg select,.fg textarea{height:34px;border-radius:6px;border:1px solid var(--bdr);background:var(--bg4);color:var(--txt);padding:0 9px;font-family:inherit;font-size:11px;outline:none}
+.fg textarea{height:92px;padding:10px;resize:none;line-height:1.5}.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--pri)}
+.filter-actions{display:flex;gap:8px;align-items:flex-end;justify-content:flex-end;flex-direction:row!important;padding-top:24px;grid-column:5 / 7}.fg.filter-actions .btn{height:38px;min-width:104px;justify-content:center;white-space:nowrap}
+.trend{font-size:9px;font-family:'JetBrains Mono',monospace;padding:2px 5px;border-radius:8px}.trend.up{background:var(--mint-d);color:var(--mint)}.trend.dn{background:var(--coral-d);color:var(--coral)}.trend.nt{background:rgba(100,115,150,.12);color:var(--txt3)}
+.br.dn{background:linear-gradient(180deg,var(--coral),#b91c1c)}.br.up{background:linear-gradient(180deg,var(--bar-c,var(--pri)),var(--sec))}
+.comm-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:12px;margin-bottom:12px}.preview-box{background:var(--bg4);border:1px dashed var(--bdr2);border-radius:var(--rad);padding:14px;min-height:220px}.preview-subj{font-size:12px;font-weight:700;margin-bottom:10px}.preview-body{font-size:11px;color:var(--txt2);line-height:1.65}
+.recipient-box{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.recipient-card{background:var(--bg4);border:1px solid var(--bdr);border-radius:8px;padding:10px}.recipient-card b{display:block;font-size:16px;font-family:'JetBrains Mono',monospace}.recipient-card span{font-size:10px;color:var(--txt3)}
+@media(max-width:1200px){.filter-grid{grid-template-columns:repeat(3,1fr)}.filter-actions{grid-column:1 / -1}.comm-grid{grid-template-columns:1fr}.recipient-box{grid-template-columns:1fr}}
+
+@media(max-width:1100px){.sg{grid-template-columns:repeat(2,1fr)}.cg,.dg{grid-template-columns:1fr}}
+
+/* v8 refinements */
+.nav-g-label{font-size:11px;margin-bottom:7px;color:#7d89a8;letter-spacing:.8px}
+.ni{font-size:13.5px;padding:10px 12px;line-height:1.25}
+.ni-sub{font-size:13px;padding-left:26px}
+.ni svg,.svc-ico{width:18px;height:18px}
+.ni .cnt{font-size:10.5px;padding:2px 7px}
+.side-logo span{font-size:15px}
+.comm-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(320px,.75fr);gap:12px;margin-bottom:12px}
+.editor-toolbar{display:flex;gap:4px;flex-wrap:wrap;background:var(--bg4);border:1px solid var(--bdr);border-bottom:none;border-radius:var(--rad-s) var(--rad-s) 0 0;padding:7px}
+.ed-btn{height:28px;min-width:30px;padding:0 8px;border:1px solid var(--bdr2);background:var(--bg3);color:var(--txt2);border-radius:5px;font-size:11px;font-weight:700;cursor:pointer}
+.ed-btn:hover{color:var(--txt);border-color:var(--pri)}
+.email-editor{min-height:260px;background:var(--bg);border:1px solid var(--bdr);border-radius:0 0 var(--rad-s) var(--rad-s);padding:18px;color:var(--txt);font-size:13px;line-height:1.7;outline:none}
+.msg-editor{min-height:180px;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rad-s);padding:14px;color:var(--txt);font-size:13px;line-height:1.6;resize:vertical;width:100%;font-family:inherit}
+.char-counter{text-align:right;font-size:11px;color:var(--txt3);margin-top:5px}
+.sender-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.notice-box{background:rgba(255,209,102,.08);border:1px solid rgba(255,209,102,.25);border-radius:var(--rad);padding:10px 12px;color:var(--amber);font-size:12px;margin-bottom:12px}
+.customer-grade{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:13px;font-size:11px;font-weight:700}
+.social-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:16px}
+.social-card{background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--rad);overflow:hidden;position:relative}
+.social-card::before{content:'';position:absolute;left:0;right:0;top:0;height:4px;background:var(--brand)}
+.social-head{padding:16px;border-bottom:1px solid var(--bdr);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;background:linear-gradient(135deg,var(--brand-soft),transparent 70%)}
+.social-title{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px}
+.social-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--brand);color:#fff;font-weight:900;font-size:17px;box-shadow:0 8px 20px rgba(0,0,0,.25)}
+.social-sub{margin-top:5px;color:var(--txt2);font-size:13px;line-height:1.4}
+.social-pill{padding:5px 10px;border-radius:16px;background:var(--brand-soft);color:var(--brand);font-size:12px;font-weight:800;white-space:nowrap}
+.social-body{padding:16px}
+.social-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.social-metric{background:var(--bg4);border:1px solid var(--bdr);border-radius:var(--rad-s);padding:12px}
+.social-metric .label{font-size:12px;color:var(--txt3);margin-bottom:6px}
+.social-metric .value{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:800;color:var(--brand)}
+.social-focus{border:1px solid var(--brand-line);background:var(--brand-soft);color:var(--txt);border-radius:var(--rad);padding:11px 12px;font-size:13px;margin-bottom:12px;line-height:1.55}
+.social-mini-bars{display:flex;flex-direction:column;gap:9px;margin-bottom:14px}
+.social-mini-row{display:grid;grid-template-columns:90px 1fr 54px;gap:9px;align-items:center;font-size:12px;color:var(--txt2)}
+.social-mini-track{height:9px;border-radius:10px;background:var(--bg4);overflow:hidden}.social-mini-fill{height:100%;background:var(--brand);border-radius:10px}
+.social-card.instagram-main{--brand:#E1306C;--brand-soft:rgba(225,48,108,.12);--brand-line:rgba(225,48,108,.35)}
+.social-card.instagram-proj{--brand:#06d6a0;--brand-soft:rgba(6,214,160,.12);--brand-line:rgba(6,214,160,.35)}
+.social-card.youtube{--brand:#ff4b4b;--brand-soft:rgba(255,75,75,.12);--brand-line:rgba(255,75,75,.35)}
+.social-card.blog{--brand:#03c75a;--brand-soft:rgba(3,199,90,.12);--brand-line:rgba(3,199,90,.35)}
+@media(max-width:1200px){.social-grid{grid-template-columns:1fr}.social-metrics{grid-template-columns:1fr 1fr}}
+
+.grade-vip{background:rgba(255,209,102,.12);color:var(--amber)}
+.grade-risk{background:rgba(239,71,111,.12);color:var(--coral)}
+@media(max-width:1100px){.comm-grid{grid-template-columns:1fr}.sender-grid{grid-template-columns:1fr}}
+
+/* v9 modal editor and send confirm */
+.sys-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(3,7,18,.62);backdrop-filter:blur(4px);z-index:700;padding:24px}
+.sys-modal.show{display:flex;animation:fi .18s ease}
+.sys-dialog{width:520px;max-width:100%;max-height:90vh;background:var(--bg2);border:1px solid var(--bdr2);border-radius:16px;box-shadow:0 30px 90px rgba(0,0,0,.5);overflow:hidden;color:var(--txt)}
+.sys-dialog.large{width:min(1080px,96vw)}
+.sys-top{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--bdr);background:var(--bg3)}
+.sys-head b{display:block;font-size:15px}.sys-head span{display:block;font-size:11px;color:var(--txt3);margin-top:2px}
+.sys-close{width:30px;height:30px;border-radius:8px;border:1px solid var(--bdr);background:var(--bg4);color:var(--txt2);cursor:pointer;font-size:18px}.sys-close:hover{color:var(--txt);border-color:var(--bdr2)}
+.sys-body{padding:18px;overflow:auto;max-height:calc(90vh - 67px)}
+.sys-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--bdr)}
+.send-confirm-icon{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:var(--amber-d);color:var(--amber);font-size:24px;margin-bottom:12px}
+.confirm-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}.confirm-item{background:var(--bg3);border:1px solid var(--bdr);border-radius:9px;padding:10px}.confirm-item b{display:block;font-size:14px}.confirm-item span{font-size:10px;color:var(--txt3)}
+.full-editor-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:14px}.full-editor-side{background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--rad);padding:14px}.full-editor-side h4{font-size:12px;margin-bottom:10px}.full-editor-side .chip-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}.full-editor-side .ch{font-size:10.5px}.full-email-editor{min-height:430px;background:#fff;color:#111827;border:1px solid var(--bdr);border-radius:0 0 8px 8px;padding:28px;font-size:14px;line-height:1.75;outline:none}.full-email-editor h1{font-size:24px;margin:0 0 14px;color:#111827}.full-email-editor p,.full-email-editor li{color:#374151}.full-email-editor ul{margin:10px 0 14px 22px}.full-email-editor .cta{display:inline-block;background:#111827;color:#fff;text-decoration:none;border-radius:8px;padding:10px 18px;font-weight:800}.mini-email-open{margin-left:auto}
+@media(max-width:900px){.full-editor-layout{grid-template-columns:1fr}.confirm-summary{grid-template-columns:1fr}}
+
+
+/* v14: 전체 폰트 가독성 +3px 수준 보정 */
+:root{--side:270px;}
+html{font-size:16px;}
+.nav-g-label{font-size:14px!important;}
+.ni{font-size:15px!important;padding:10px 12px!important;gap:10px;}
+.ni-sub{font-size:14px!important;padding-left:22px!important;}
+.ni svg{width:18px!important;height:18px!important;}
+.ni .cnt{font-size:12px!important;padding:2px 7px!important;}
+.side-logo span{font-size:17px!important}.side-logo .ico{width:32px;height:32px;font-size:13px;}
+.hd-title{font-size:18px!important}.hd-sub{font-size:14px!important}
+.ct{font-size:16px;}
+.tab{font-size:14px!important}.sc-l,.cd-t,.fg label{font-size:14px!important}.sc-v{font-size:27px!important}.sc-d{font-size:13px!important}
+.dt th{font-size:13px!important}.dt td{font-size:15px!important}.bd,.tag{font-size:13px!important}.btn{font-size:15px!important}
+.ir .il,.il{font-size:14px!important}.iv{font-size:15px!important}.ar,.tl-e,.vr{font-size:15px!important}.ar-t,.tl-t,.hd-btn,.pg,.bl,.seg-label,.seg-val{font-size:13px!important}
+input,select,textarea,.email-editor,.msg-editor{font-size:15px!important}
+
+</style>
+</head>
+<body>
+
+<div class="login" id="login">
+  <div class="login-card">
+    <section class="login-info">
+      <div class="login-kicker">NC문화재단 통합회원 관리자</div>
+      <div class="login-title">통합회원·기부·CRM 운영을<br>한 곳에서 관리하는 내부 시스템</div>
+      <div class="login-desc">재단 서비스별 회원, 홈페이지(채용) 지원자, 동의 이력, 실제 이용 현황, 기부금 및 기부금 영수증 신청까지 함께 확인하는 관리자 데모입니다.</div>
+      <div class="login-points">
+        <div class="login-point"><b>공통 계정</b><span>하나의 ID·비밀번호와 본인인증 기반 가입</span></div>
+        <div class="login-point"><b>서비스별 부가정보</b><span>대표홈·FAIR AI·프로젝토리·나의AAC 필요 정보만 추가 수집</span></div>
+        <div class="login-point"><b>동의 이력</b><span>약관, 처리방침, 수신 동의와 철회 기록 통합 관리</span></div>
+        <div class="login-point"><b>발송 관리</b><span>이메일·문자 발송과 예약 발송 이력 통합 관리</span></div>
+      </div>
+    </section>
+    <section class="login-form">
+      <div class="login-logo"><div class="ci-word">NC문화재단</div><div class="ci-sub">Integrated Member Management System</div></div>
+      <div class="login-field"><label>관리자 ID</label><input value="admin@nccf.or.kr"></div>
+      <div class="login-field"><label>비밀번호</label><input type="password" value="demo1234"></div>
+      <div class="login-opt"><label><input type="checkbox" checked> 로그인 유지</label><a href="#" onclick="toast('데모 화면에서는 비밀번호 찾기를 제공하지 않습니다')">비밀번호 찾기</a></div>
+      <button class="login-btn" onclick="loginDemo()">관리자 로그인</button>
+      <div class="login-note">※ 데모용 화면입니다. 실제 운영 시 관리자 권한, 접근 로그, MFA, 개인정보 접근 통제 정책이 함께 적용됩니다.</div>
+      <div class="mfa-panel" id="mfaPanel" onclick="closeMfa(event)">
+        <div class="mfa-dialog" onclick="event.stopPropagation()">
+          <div class="mfa-top">
+            <div class="mfa-head"><b>2차 인증</b><span>문자로 받은 4자리 인증코드 입력</span></div>
+            <button class="mfa-close" onclick="hideMfa()" aria-label="닫기">×</button>
+          </div>
+          <div class="mfa-body">
+            <div class="mfa-account"><div class="lock">✉</div><div><b>admin@nccf.or.kr</b><span>등록된 휴대전화(010-****-1234)로 인증코드를 발송했습니다.</span></div></div>
+            <div class="mfa-code">
+              <input type="text" maxlength="1" value="4" inputmode="numeric" pattern="[0-9]*" aria-label="인증번호 첫 번째 자리" oninput="nextOtp(this)" onkeydown="otpBackspace(event,this)"><input type="text" maxlength="1" value="8" inputmode="numeric" pattern="[0-9]*" aria-label="인증번호 두 번째 자리" oninput="nextOtp(this)" onkeydown="otpBackspace(event,this)"><input type="text" maxlength="1" value="2" inputmode="numeric" pattern="[0-9]*" aria-label="인증번호 세 번째 자리" oninput="nextOtp(this)" onkeydown="otpBackspace(event,this)"><input type="text" maxlength="1" value="9" inputmode="numeric" pattern="[0-9]*" aria-label="인증번호 네 번째 자리" oninput="nextOtp(this)" onkeydown="otpBackspace(event,this)">
+            </div>
+            <div class="mfa-meta">문자로 수신한 4자리 인증코드를 입력하세요. 데모에서는 예시 코드가 미리 입력되어 있습니다.<br>유효시간 03:00</div>
+            <div class="mfa-actions"><button class="mfa-secondary" onclick="toast('문자 인증코드를 재발송했습니다')">문자 재전송</button><button class="login-btn mfa-btn" onclick="completeLogin()">인증 완료</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+<div class="app" id="app">
+
+<!-- ══════ SIDEBAR ══════ -->
+<aside class="side">
+  <div class="side-logo"><div class="ico">NC</div><span>통합회원 관리자</span></div>
+  <nav class="side-nav">
+    <div class="nav-g">
+      <div class="nav-g-label">메인</div>
+      <div class="ni act" onclick="go('dash')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>대시보드</div>
+      <div class="ni" onclick="go('ranking')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v4a5 5 0 01-10 0V4z"/><path d="M5 5H3v2a4 4 0 004 4"/><path d="M19 5h2v2a4 4 0 01-4 4"/></svg>랭킹<span class="cnt">TOP</span></div>
+    </div>
+    <div class="nav-g">
+      <div class="nav-g-label">회원</div>
+      <div class="ni" onclick="go('members')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>전체 회원<span class="cnt">12,847</span></div>
+    </div>
+    <div class="nav-g">
+      <div class="nav-g-label">고객관리</div>
+      <div class="ni" onclick="go('vip')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>VIP 고객<span class="cnt">126</span></div>
+      <div class="ni" onclick="go('risk')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>주의 고객 관리<span class="cnt">14</span></div>
+    </div>
+
+    <div class="nav-g">
+      <div class="nav-g-label">서비스별 회원</div>
+      <div class="ni ni-sub" onclick="goSvc('home')"><span class="svc-ico home">NC</span>홈페이지<span class="cnt">8,421</span></div>
+      <div class="ni ni-sub" onclick="goSvc('recruit')"><span class="svc-ico home">HR</span>홈페이지(채용)<span class="cnt">1,247</span></div>
+      <div class="ni ni-sub" onclick="goSvc('fair')"><img class="svc-ico" src="data:image/png;base64,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">FAIR AI<span class="cnt">3,210</span></div>
+      <div class="ni ni-sub" onclick="goSvc('proj')"><img class="svc-ico" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAYAAAByDd+UAAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAHKADAAQAAAABAAAAHAAAAABkvfSiAAADIklEQVRIDb1WO2gUURQ9b2b2F8QQElIkcRFUFFLZSbAxRSobFYIoBIQoKClEUTBgo42CWIkiaKWNrWBlkU6LoGBhFDRFCIkJoqxkdX8zb7z3zZvZmdmZzCbFPth5n/s599x7580KlwZ6OIweYimongNa3TDkrLccByJD2YUL0zDoZ6Zqiqwa+iUWIgsuFSMiSGXIQNKVSrlSqeDd50XkrBxsZhoHp70pDJLZKA+PYvzgEcqGgEFs4yMRkNuWfRpktLG5ifOPb2BhdZFO2QEHEWdLe2kD/6qYmZjGkyv3YFAAxXwBHHg4wA5ABUYPSfVYWV/Dxafz+PBzCUODowSjpATIszeYiU14fwwXTq2KUv+ABxCPSet3ALIeF58jpALj8tQ53OzbA9u2daRtMCklNYiF5R8rmHvzkBIgIVutcDwapj11ALLIT8H+sTLKY/tUatsmnj8OzFGABha/fgJeO4Bltdl1yzDsmNce4/ipJkEZCIZah/aBILpIZBhV4V3UEe+4dpx6JQ0Dq5P0RyYgO44P/8SXqRK0D+PqkX3nixIRd7vxODNhP4hYUgJHmQwDTV6EUxd5+Ykey2hqNGr63YtYBpsdALJDP2+BvVpwt8I0IRoOThw+hmKuECj4He8fdAeooqcmsZvq3VTGBC4YiIqS4ytsq4oH07cwM3nGCyw5NmQD6jS6dE+qtLUacDVTh84MCqJZ/4v5yUu4dmoWDt21pjB1WjtRM78WCoRA7XoVzRe3kV96C7e0l+6+JhHNQ9K8dfoOhiZO0povdvo0Cbo/E7qbM7M9Q/5a8Ffg9zpqz66j9P4VLCoP9yToBrPNfsgL9zGowCSB8XXP0k5mbMIjhWHbyP61BvvRLPLLCzByFIDrwK1L1IojMOeeo3B0SiVBcB11rT3Xyc8UhhQhGTfWv6N59yz6Vj9C8hH5cMlva2AE4upLFMaPc8yUBM0opYvD0MkM1YdXoLX6BWLjG0SuyFDULIRGdcLwAVijh/hEpTHsMGudDJhlxXIG3ua/S5qLlJRqdXbKP06V6hR9zvXaBRhb756hxt7pRKH2dvQc8D88uiStocTlPgAAAABJRU5ErkJggg==">프로젝토리<span class="cnt">5,892</span></div>
+      <div class="ni ni-sub" onclick="goSvc('aac')"><img class="svc-ico" src="data:image/png;base64,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">나의AAC<span class="cnt">4,115</span></div>
+    </div>
+
+    <div class="nav-g">
+      <div class="nav-g-label">커뮤니케이션</div>
+      <div class="ni" onclick="go('communications')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H5.17L4 17.17V4z"/><path d="M22 6l-10 7L2 6"/></svg>이메일·문자 발송<span class="cnt">예약 8</span></div>
+      <div class="ni" onclick="go('boards')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h10"/></svg>게시판 공통 관리<span class="cnt">42</span></div>
+      <div class="ni" onclick="go('newsletters')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>뉴스레터 관리<span class="cnt">스티비</span></div>
+      <div class="ni" onclick="go('social')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51L8.59 10.49"/></svg>SNS·채널 데이터<span class="cnt">4채널</span></div>
+    </div>
+    <div class="nav-g">
+      <div class="nav-g-label">경영지원</div>
+      <div class="ni" onclick="go('donations')"><img class="svc-ico" src="data:image/png;base64,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">기부금액 관리<span class="cnt">₩128M</span></div>
+      <div class="ni" onclick="go('receipts')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h6"/></svg>기부금 영수증 신청<span class="cnt">38</span></div>
+    </div>
+    <div class="nav-g">
+      <div class="nav-g-label">관리</div>
+      <div class="ni" onclick="go('consent')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>동의·약관 관리</div>
+      <div class="ni" onclick="go('roles')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg>권한 관리</div>
+      <div class="ni" onclick="go('adminLoginLogs')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg>관리자 로그인 로그</div>
+      <div class="ni" onclick="go('usageLogs')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-4 4 4 5-8"/></svg>이용 로그</div>
+      <div class="ni" onclick="go('accessLogs')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>개인정보 접근 로그</div>
+      <div class="ni" onclick="go('systemSettings')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06A1.65 1.65 0 0015 19.4a1.65 1.65 0 00-1 .6 1.65 1.65 0 00-.33 1.82V22a2 2 0 01-4 0v-.18A1.65 1.65 0 008 20.2a1.65 1.65 0 00-1.82-.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 003.6 15a1.65 1.65 0 00-.6-1 1.65 1.65 0 00-1.82-.33H1a2 2 0 010-4h.18A1.65 1.65 0 002.8 8a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 008 3.6a1.65 1.65 0 001-.6 1.65 1.65 0 00.33-1.82V1a2 2 0 014 0v.18A1.65 1.65 0 0015 3.6a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0020.4 8c.36.09.7.27 1 .6.3.3.51.66.6 1H22a2 2 0 010 4h-.18A1.65 1.65 0 0020.4 15z"/></svg>시스템 설정</div>
+    </div>
+  </nav>
+  <div class="side-ft"><div class="uc"><div class="av">관</div><div><div class="nm">관리자</div><div class="rl">Super Admin</div></div></div></div>
+</aside>
+
+<!-- ══════ MAIN ══════ -->
+<main class="mn">
+<header class="hd">
+  <div><div class="hd-title" id="hdT">대시보드</div><div class="hd-sub" id="hdS">통합회원 현황 개요</div></div>
+  <div class="hd-r">
+    <div class="hd-btn" onclick="toast('검색 기능 준비 중')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></div>
+    <div class="hd-btn" onclick="toast('새 알림 없음')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div>
+  </div>
+</header>
+<div class="ct" id="ct"></div>
+</main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════ DATA ═══════════════
+const SVCS = {home:'홈페이지',recruit:'홈페이지(채용)',fair:'FAIR AI',proj:'프로젝토리',aac:'나의AAC'};
+const SVC_COLORS = {home:'var(--pri)',recruit:'var(--amber)',fair:'var(--acc)',proj:'var(--mint)',aac:'var(--purple)'};
+const ICONS = {fair:'data:image/png;base64,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',proj:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAYAAAByDd+UAAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAHKADAAQAAAABAAAAHAAAAABkvfSiAAADIklEQVRIDb1WO2gUURQ9b2b2F8QQElIkcRFUFFLZSbAxRSobFYIoBIQoKClEUTBgo42CWIkiaKWNrWBlkU6LoGBhFDRFCIkJoqxkdX8zb7z3zZvZmdmZzCbFPth5n/s599x7580KlwZ6OIweYimongNa3TDkrLccByJD2YUL0zDoZ6Zqiqwa+iUWIgsuFSMiSGXIQNKVSrlSqeDd50XkrBxsZhoHp70pDJLZKA+PYvzgEcqGgEFs4yMRkNuWfRpktLG5ifOPb2BhdZFO2QEHEWdLe2kD/6qYmZjGkyv3YFAAxXwBHHg4wA5ABUYPSfVYWV/Dxafz+PBzCUODowSjpATIszeYiU14fwwXTq2KUv+ABxCPSet3ALIeF58jpALj8tQ53OzbA9u2daRtMCklNYiF5R8rmHvzkBIgIVutcDwapj11ALLIT8H+sTLKY/tUatsmnj8OzFGABha/fgJeO4Bltdl1yzDsmNce4/ipJkEZCIZah/aBILpIZBhV4V3UEe+4dpx6JQ0Dq5P0RyYgO44P/8SXqRK0D+PqkX3nixIRd7vxODNhP4hYUgJHmQwDTV6EUxd5+Ykey2hqNGr63YtYBpsdALJDP2+BvVpwt8I0IRoOThw+hmKuECj4He8fdAeooqcmsZvq3VTGBC4YiIqS4ytsq4oH07cwM3nGCyw5NmQD6jS6dE+qtLUacDVTh84MCqJZ/4v5yUu4dmoWDt21pjB1WjtRM78WCoRA7XoVzRe3kV96C7e0l+6+JhHNQ9K8dfoOhiZO0povdvo0Cbo/E7qbM7M9Q/5a8Ffg9zpqz66j9P4VLCoP9yToBrPNfsgL9zGowCSB8XXP0k5mbMIjhWHbyP61BvvRLPLLCzByFIDrwK1L1IojMOeeo3B0SiVBcB11rT3Xyc8UhhQhGTfWv6N59yz6Vj9C8hH5cMlva2AE4upLFMaPc8yUBM0opYvD0MkM1YdXoLX6BWLjG0SuyFDULIRGdcLwAVijh/hEpTHsMGudDJhlxXIG3ua/S5qLlJRqdXbKP06V6hR9zvXaBRhb756hxt7pRKH2dvQc8D88uiStocTlPgAAAABJRU5ErkJggg==',aac:'data:image/png;base64,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',give:'data:image/png;base64,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'};
+function svcIcon(k){return k==='home'?'<span class="svc-ico home">NC</span>':k==='recruit'?'<span class="svc-ico home">HR</span>':`<img class="svc-ico" src="${ICONS[k]||ICONS.give}">`;}
+const TAG_MAP = {
+  'AAC 관심':{cls:'tag-aac',key:'aac_interest'},
+  'AI 관심':{cls:'tag-ai',key:'ai_interest'},
+  '프로젝토리 멤버십':{cls:'tag-proj',key:'proj_member'},
+  '기부 가능성 높음':{cls:'tag-donate',key:'donate_high'},
+  '행사 참여 경험 있음':{cls:'tag-event',key:'event_exp'},
+  '뉴스레터 반응 높음':{cls:'tag-news',key:'newsletter'},
+  '최근 6개월 미접속':{cls:'tag-dormant',key:'dormant'},
+  '아동/보호자 회원':{cls:'tag-child',key:'child'},
+  '기관 관계자':{cls:'tag-org',key:'org'},
+};
+
+const members = [
+  {name:"김서연",email:"kim.sy@email.com",type:"회원",date:"2026-04-12",status:"활성",
+   svcs:{home:{joined:"2026-04-12",donation:"월 3만원 정기기부",membership:"일반"},recruit:{joined:"2026-04-18",status:"지원완료",position:"사업기획"},fair:{joined:"2026-04-15",usage:"AI 진단 12회"},proj:{joined:"2026-04-20",membership:"정회원",docs:"서류제출완료"}},
+   tags:["AI 관심","기부 가능성 높음","뉴스레터 반응 높음"],
+   phone:"010-1234-5678",birth:"1995-03-15",addr:"서울 강남구 테헤란로 123",auth:"NICE"},
+  {name:"이준호",email:"lee.jh@email.com",type:"이용자",date:"2026-04-28",status:"활성",
+   svcs:{recruit:{joined:"2026-04-30",status:"서류검토",position:"개발/데이터"},fair:{joined:"2026-04-28",usage:"AI 상담 3회"}},
+   tags:["AI 관심"],phone:"010-2345-6789",birth:"1988-07-22",addr:"경기 성남시 분당구",auth:"NICE"},
+  {name:"박민지",email:"park.mj@email.com",type:"후원자",date:"2026-03-15",status:"활성",
+   svcs:{home:{joined:"2026-03-15",donation:"일시 50만원",membership:"후원회원"},aac:{joined:"2026-04-01",role:"보호자",child:"박하린(8세)"}},
+   tags:["기부 가능성 높음","AAC 관심","아동/보호자 회원","행사 참여 경험 있음"],phone:"010-3456-7890",birth:"1990-11-05",addr:"서울 서초구",auth:"NICE"},
+  {name:"정우진",email:"jung.wj@email.com",type:"회원",date:"2026-05-01",status:"활성",
+   svcs:{home:{joined:"2026-05-01",donation:"없음",membership:"일반"},recruit:{joined:"2026-05-02",status:"면접예정",position:"IT PM"},fair:{joined:"2026-05-03",usage:"AI 교육 참여"},proj:{joined:"2026-05-05",membership:"준회원",docs:"대기중"},aac:{joined:"2026-05-10",role:"이용자",device:"태블릿"}},
+   tags:["AI 관심","프로젝토리 멤버십","AAC 관심","행사 참여 경험 있음"],phone:"010-4567-8901",birth:"1992-02-18",addr:"부산 해운대구",auth:"NICE"},
+  {name:"최하은",email:"choi.he@email.com",type:"이용자",date:"2026-02-20",status:"휴면",
+   svcs:{proj:{joined:"2026-02-20",membership:"준회원",docs:"미제출"}},
+   tags:["최근 6개월 미접속","프로젝토리 멤버십"],phone:"010-5678-9012",birth:"2001-09-30",addr:"대전 유성구",auth:"NICE"},
+  {name:"강도윤",email:"kang.dy@email.com",type:"회원",date:"2026-01-08",status:"활성",
+   svcs:{home:{joined:"2026-01-08",donation:"월 5만원 정기기부",membership:"정회원"},proj:{joined:"2026-02-15",membership:"정회원",docs:"서류제출완료"}},
+   tags:["기부 가능성 높음","프로젝토리 멤버십","뉴스레터 반응 높음"],phone:"010-6789-0123",birth:"1985-04-12",addr:"서울 마포구",auth:"NICE"},
+  {name:"윤서아",email:"yoon.sa@email.com",type:"후원자",date:"2025-12-30",status:"활성",
+   svcs:{home:{joined:"2025-12-30",donation:"월 10만원 정기기부",membership:"후원회원"}},
+   tags:["기부 가능성 높음","행사 참여 경험 있음","뉴스레터 반응 높음"],phone:"010-7890-1234",birth:"1978-12-25",addr:"서울 용산구",auth:"NICE"},
+  {name:"조현우",email:"cho.hw@email.com",type:"이용자",date:"2026-05-10",status:"활성",
+   svcs:{aac:{joined:"2026-05-10",role:"이용자",device:"스마트폰"}},
+   tags:["AAC 관심"],phone:"010-8901-2345",birth:"2010-06-15",addr:"인천 남동구",auth:"법정대리인"},
+  {name:"한예진",email:"han.yj@email.com",type:"회원",date:"2026-03-22",status:"탈퇴",
+   svcs:{home:{joined:"2026-03-22",donation:"없음",membership:"일반"},recruit:{joined:"2026-03-24",status:"불합격",position:"운영지원"},fair:{joined:"2026-03-25",usage:"AI 진단 1회"}},
+   tags:[],phone:"010-9012-3456",birth:"1997-08-08",addr:"광주 서구",auth:"NICE"},
+  {name:"송민석",email:"song.ms@email.com",type:"이용자",date:"2026-04-05",status:"활성",
+   svcs:{proj:{joined:"2026-04-05",membership:"준회원",docs:"심사중"}},
+   tags:["프로젝토리 멤버십"],phone:"010-0123-4567",birth:"1999-01-20",addr:"대구 수성구",auth:"NICE"},
+  {name:"유지현",email:"yu.jh@email.com",type:"회원",date:"2026-05-15",status:"활성",
+   svcs:{home:{joined:"2026-05-15",donation:"일시 10만원",membership:"일반"},recruit:{joined:"2026-05-17",status:"지원완료",position:"커뮤니케이션"},fair:{joined:"2026-05-16",usage:"캠페인 2회 참여"},aac:{joined:"2026-05-18",role:"보호자",child:"유다은(6세)"}},
+   tags:["AI 관심","AAC 관심","아동/보호자 회원","기부 가능성 높음"],phone:"010-1111-2222",birth:"1991-05-10",addr:"서울 송파구",auth:"NICE"},
+  {name:"임채원",email:"lim.cw@email.com",type:"후원자",date:"2026-02-28",status:"활성",
+   svcs:{home:{joined:"2026-02-28",donation:"월 2만원 정기기부",membership:"후원회원"},proj:{joined:"2026-03-10",membership:"정회원",docs:"서류제출완료"}},
+   tags:["기부 가능성 높음","프로젝토리 멤버십","기관 관계자"],phone:"010-3333-4444",birth:"1982-10-03",addr:"경기 수원시",auth:"NICE"},
+  {name:"오태영",email:"oh.ty@email.com",type:"이용자",date:"2026-01-20",status:"휴면",
+   svcs:{fair:{joined:"2026-01-20",usage:"AI 진단 1회"}},
+   tags:["최근 6개월 미접속","AI 관심"],phone:"010-5555-6666",birth:"2003-03-28",addr:"충남 천안시",auth:"NICE"},
+];
+
+const consentItems = [
+  {name:"개인정보 처리방침",ver:"v3.2",req:"필수",rate:99.8,date:"2026-05-01",status:"활성"},
+  {name:"서비스 이용약관",ver:"v3.2",req:"필수",rate:99.5,date:"2026-05-01",status:"활성"},
+  {name:"마케팅 정보 수신 동의",ver:"v2.1",req:"선택",rate:62.1,date:"2026-04-15",status:"활성"},
+  {name:"제3자 정보 제공 동의",ver:"v2.0",req:"선택",rate:45.3,date:"2026-03-20",status:"활성"},
+  {name:"위치정보 수집 동의",ver:"v1.5",req:"선택",rate:38.7,date:"2026-02-10",status:"활성"},
+  {name:"이벤트 알림 동의 (구)",ver:"v1.0",req:"선택",rate:0,date:"2025-12-01",status:"폐기"},
+];
+
+const donations = [
+  {name:'윤서아',type:'정기기부',amount:100000,month:1200000,method:'카드',start:'2025-12-30',receipt:'신청완료',status:'정상'},
+  {name:'박민지',type:'일시기부',amount:500000,month:500000,method:'계좌이체',start:'2026-03-15',receipt:'발급대기',status:'정상'},
+  {name:'강도윤',type:'정기기부',amount:50000,month:600000,method:'카드',start:'2026-01-08',receipt:'신청완료',status:'정상'},
+  {name:'김서연',type:'정기기부',amount:30000,month:360000,method:'카드',start:'2026-04-12',receipt:'미신청',status:'정상'},
+  {name:'임채원',type:'정기기부',amount:20000,month:240000,method:'CMS',start:'2026-02-28',receipt:'신청완료',status:'정상'},
+  {name:'유지현',type:'일시기부',amount:100000,month:100000,method:'카드',start:'2026-05-15',receipt:'발급대기',status:'정상'}
+];
+const receiptRequests = [
+  {name:'박민지',year:'2026',amount:500000,request:'2026-05-20',purpose:'연말정산',status:'발급대기'},
+  {name:'유지현',year:'2026',amount:100000,request:'2026-05-21',purpose:'기부 확인',status:'발급대기'},
+  {name:'윤서아',year:'2026',amount:1200000,request:'2026-05-18',purpose:'연말정산',status:'발급완료'},
+  {name:'강도윤',year:'2026',amount:600000,request:'2026-05-16',purpose:'연말정산',status:'발급완료'}
+];
+const usageMetrics = {home:{rate:64,time:'04m 12s',active:8421,visits:21840},recruit:{rate:29,time:'06m 35s',active:1247,visits:3820},fair:{rate:38,time:'11m 25s',active:3210,visits:7420},proj:{rate:52,time:'18m 40s',active:5892,visits:12680},aac:{rate:71,time:'23m 15s',active:4115,visits:18020}};
+const platformMetrics = {
+  home:{label:'홈페이지',total:'21,840',channels:[{name:'PC 웹',badge:'PC',rate:58,time:'03m 48s',visits:12670},{name:'모바일 웹',badge:'Mobile',rate:42,time:'02m 55s',visits:9170}]},
+  recruit:{label:'홈페이지(채용)',total:'3,820',channels:[{name:'채용 PC 웹',badge:'PC',rate:62,time:'07m 10s',visits:2368},{name:'채용 모바일 웹',badge:'Mobile',rate:38,time:'05m 20s',visits:1452}]},
+  fair:{label:'FAIR AI',total:'7,420',channels:[{name:'PC 웹',badge:'PC',rate:46,time:'12m 10s',visits:3410},{name:'모바일 웹',badge:'Mobile',rate:54,time:'09m 35s',visits:4010}]},
+  proj:{label:'프로젝토리',total:'12,680',channels:[{name:'PC 웹',badge:'PC',rate:35,time:'16m 20s',visits:4438},{name:'모바일 웹',badge:'Mobile',rate:65,time:'13m 05s',visits:8242}]},
+  aac:{label:'나의AAC',total:'18,020',channels:[{name:'서비스 소개 웹',badge:'Web',rate:22,time:'02m 40s',visits:3964},{name:'모바일 앱',badge:'App Mobile',rate:48,time:'24m 10s',visits:8650},{name:'태블릿 앱',badge:'App Tablet',rate:30,time:'31m 25s',visits:5406}]}
+};
+
+// ═══════════════ STATE ═══════════════
+let S = {screen:'dash',svcTab:'all',filter:'all',tagFilter:'',search:'',page:1,detailIdx:null,svcView:null,statusFilter:'all',svcFilter:'all',consentFilter:'all',donationFilter:'all',dateFrom:'',dateTo:'',commChannel:'email',sendMode:'now',rankTab:'customer'};
+const PER=8;
+
+// ═══════════════ NAVIGATION ═══════════════
+function go(scr){
+  S.screen=scr;S.detailIdx=null;S.svcView=null;S.page=1;S.filter='all';S.tagFilter='';S.search='';S.statusFilter='all';S.svcFilter='all';S.consentFilter='all';S.donationFilter='all';S.dateFrom='';S.dateTo='';
+  setNav(scr);render();
+}
+function goSvc(svc){
+  S.screen='svc';S.svcView=svc;S.detailIdx=null;S.page=1;S.filter='all';S.tagFilter='';S.search='';S.statusFilter='all';S.svcFilter='all';S.consentFilter='all';S.donationFilter='all';S.dateFrom='';S.dateTo='';
+  setNav('svc-'+svc);render();
+}
+function setNav(id){
+  document.querySelectorAll('.ni').forEach(n=>{
+    const match = n.getAttribute('onclick')||'';
+    n.classList.toggle('act',match.includes("'"+id.replace('svc-','')+"'") || (id==='dash'&&match.includes("'dash'")) || (id==='ranking'&&match.includes("'ranking'")) || (id==='communications'&&match.includes("'communications'")) || (id==='boards'&&match.includes("'boards'")) || (id==='newsletters'&&match.includes("'newsletters'") || (id==='social'&&match.includes("'social'"))) || (id==='vip'&&match.includes("'vip'")) || (id==='risk'&&match.includes("'risk'")) || (id==='members'&&match.includes("'members'")) || (id==='consent'&&match.includes("'consent'")) || (id==='donations'&&match.includes("'donations'")) || (id==='receipts'&&match.includes("'receipts'")) || (id==='roles'&&match.includes("'roles'")) || (id==='adminLoginLogs'&&match.includes("'adminLoginLogs'")) || (id==='usageLogs'&&match.includes("'usageLogs'")) || (id==='accessLogs'&&match.includes("'accessLogs'")) || (id==='systemSettings'&&match.includes("'systemSettings'")));
+  });
+}
+const META={
+  dash:{t:'대시보드',s:'통합회원 현황 개요'},
+  ranking:{t:'랭킹',s:'수집 데이터 기반 고객·콘텐츠·서비스 랭킹 조회'},
+  members:{t:'전체 회원',s:'마케팅 태그 기반 회원 관리'},
+  vip:{t:'VIP 고객',s:'후원·참여 기여도가 높은 고객군 관리'},
+  risk:{t:'주의 고객 관리',s:'반복 민원·수신거부·운영 리스크 이력 관리'},
+  communications:{t:'이메일·문자 발송',s:'대상 그룹을 세분화해 즉시 발송·예약 발송을 관리'},
+  boards:{t:'게시판 공통 관리',s:'서비스별 게시판·공지·문의 글을 통합 관리'},
+  newsletters:{t:'뉴스레터 관리',s:'스티비 발송 기록과 CRM 대상·성과 데이터를 연동 관리'},
+  social:{t:'SNS·채널 데이터',s:'인스타그램·유튜브·네이버 블로그 성과 데이터를 CRM에서 통합 조회'},
+  consent:{t:'동의·약관 관리',s:'개인정보 처리방침, 이용약관, 마케팅 동의 통합 관리'},
+  donations:{t:'기부금액 관리',s:'후원자별 기부금액, 결제수단, 정기·일시기부 현황'},
+  receipts:{t:'기부금 영수증 신청',s:'기부금 영수증 신청·발급 상태 관리'},
+  roles:{t:'권한 관리',s:'관리자 역할, 메뉴 접근권한, 개인정보 조회 권한 관리'},
+  adminLoginLogs:{t:'관리자 로그인 로그',s:'관리자 접속 이력, 2차 인증, 실패 로그 확인'},
+  usageLogs:{t:'이용 로그',s:'서비스별 이용 이벤트와 하트비트 기반 활동 로그 확인'},
+  accessLogs:{t:'개인정보 접근 로그',s:'개인정보 조회·수정·다운로드 이력 관리'},
+  systemSettings:{t:'시스템 설정',s:'연동 시스템, 보안 정책, 발송 제한 기준 등 운영 설정'},
+};
+
+// ═══════════════ RENDER ═══════════════
+function render(){
+  const ct=document.getElementById('ct');
+  if(S.screen==='dash') renderDash(ct);
+  else if(S.screen==='ranking') renderRanking(ct);
+  else if(S.screen==='members') renderMembers(ct);
+  else if(S.screen==='communications') renderCommunications(ct);
+  else if(S.screen==='boards') renderBoards(ct);
+  else if(S.screen==='newsletters') renderNewsletters(ct);
+  else if(S.screen==='social') renderSocialChannels(ct);
+  else if(S.screen==='vip') renderVipCustomers(ct);
+  else if(S.screen==='risk') renderRiskCustomers(ct);
+  else if(S.screen==='svc') renderSvcMembers(ct);
+  else if(S.screen==='consent') renderConsent(ct);
+  else if(S.screen==='donations') renderDonations(ct);
+  else if(S.screen==='receipts') renderReceipts(ct);
+  else if(['roles','adminLoginLogs','usageLogs','accessLogs','systemSettings'].includes(S.screen)) renderOperations(ct,S.screen);
+  const m=S.screen==='svc'?{t:SVCS[S.svcView]+' 회원',s:'서비스 연동 회원 목록'}:META[S.screen];
+  document.getElementById('hdT').textContent=m.t;
+  document.getElementById('hdS').textContent=m.s;
+}
+
+
+// ═══════════════ RANKING ═══════════════
+function renderRanking(ct){
+  const tab=S.rankTab||'customer';
+  const tabs={customer:'고객 랭킹',content:'콘텐츠 랭킹',service:'서비스 이용 랭킹',donation:'기부 랭킹'};
+  const data={
+    customer:{
+      summary:[['고관여 고객','128명','최근 30일'],['평균 참여점수','84.6점','+7.2'],['발송 추천대상','312명','수신동의'],['휴면 전환위험','46명','관리필요']],
+      cols:['순위','고객명','주요 접점','참여 점수','최근 활동','추천 액션'],
+      rows:[['1','박민지','홈페이지 · 나의AAC','98점','기부+AAC 캠페인 참여','후원 감사/재참여 안내'],['2','정우진','FAIR AI · 프로젝토리 · 나의AAC','94점','3개 서비스 활성 이용','통합 뉴스레터 발송'],['3','강도윤','홈페이지 · 프로젝토리','91점','정기기부+멤버십','VIP 관리 후보'],['4','유지현','FAIR AI · 나의AAC','88점','AAC 보호자 등록','AAC 소식 발송'],['5','김서연','FAIR AI · 홈페이지','85점','뉴스레터 클릭 높음','AI 행사 안내']],
+      note:'회원 기본정보, 서비스 이용 이력, 하트비트 기반 활동시간, 수신동의, 기부·참여 이력을 종합해 고객 참여 점수를 산정합니다.'
+    },
+    content:{
+      summary:[['조회 TOP 콘텐츠','FAIR AI 리포트','12,430회'],['최고 반응률','프로젝토리 모집글','18.2%'],['뉴스레터 클릭','AAC 캠페인','842건'],['SNS 유입','인스타그램(대표)','3,210건']],
+      cols:['순위','콘텐츠명','채널','조회/도달','반응률','CRM 태그'],
+      rows:[['1','FAIR AI 가이드 콘텐츠','FAIR AI','12,430','14.8%','AI 관심'],['2','프로젝토리 신규 모집 안내','프로젝토리','8,920','18.2%','프로그램 참여'],['3','AAC 캠페인 소개','나의AAC','7,640','11.9%','AAC 관심'],['4','기부 참여 안내','홈페이지','5,480','9.7%','기부 후보'],['5','재단 뉴스레터 6월호','스티비','4,210','16.4%','뉴스레터 반응']],
+      note:'웹 콘텐츠 조회, 게시판 반응, 뉴스레터 오픈/클릭, SNS·블로그 성과 데이터를 기준으로 콘텐츠별 CRM 태그 연결 현황을 확인합니다.'
+    },
+    service:{
+      summary:[['활성 서비스','홈페이지','72%'],['최장 이용시간','나의AAC 태블릿 앱','18.4분'],['최다 실행','FAIR AI 모바일 웹','9,840회'],['하트비트 수집','정상','15초 단위']],
+      cols:['순위','서비스/채널','활성 이용률','평균 이용시간','월 이용량','산정 기준'],
+      rows:[['1','홈페이지 PC 웹','72%','6.8분','18,420','방문/클릭'],['2','FAIR AI 모바일 웹','69%','8.2분','9,840','조회/참여'],['3','나의AAC 태블릿 앱','65%','18.4분','7,120','하트비트'],['4','프로젝토리 모바일 웹','58%','9.6분','6,340','신청/제출'],['5','나의AAC 모바일 앱','54%','14.7분','5,980','하트비트']],
+      note:'이용시간은 로그인 유지 시간이 아니라 화면 활성 상태에서 발생한 하트비트 신호를 기준으로 산정하며, 비활성·백그라운드 상태는 제외합니다.'
+    },
+    donation:{
+      summary:[['누적 기부 TOP','윤서아','1,200만원'],['정기기부 TOP','강도윤','월 5만원'],['전환 후보','720명','캠페인 대상'],['영수증 신청','86건','발급대기 12건']],
+      cols:['순위','대상','기부 유형','기부 금액','영수증 상태','관리 액션'],
+      rows:[['1','윤서아','정기기부','12,000,000원','발급완료','VIP 감사'],['2','박민지','일시기부','5,000,000원','신청완료','고액기부자 관리'],['3','강도윤','정기기부','3,600,000원','발급완료','정기후원 유지'],['4','임채원','정기기부','1,440,000원','발급대기','영수증 확인'],['5','유지현','일시기부','100,000원','미신청','재기부 안내']],
+      note:'기부금액, 정기/일시기부, 기부금 영수증 신청 상태, 캠페인 반응 데이터를 함께 조회해 후원자 관리와 전환 후보 발굴에 활용합니다.'
+    }
+  };
+  const d=data[tab];
+  ct.innerHTML=`<div class="scr on">
+    <div class="tabs">${Object.entries(tabs).map(([k,v])=>`<div class="tab ${tab===k?'on':''}" onclick="S.rankTab='${k}';render()">${v}</div>`).join('')}</div>
+    <div class="notice-box">${d.note}</div>
+    <div class="sg">${d.summary.map((x,i)=>`<div class="sc" style="--sc-c:${['var(--pri)','var(--mint)','var(--amber)','var(--purple)'][i]}"><div class="sc-l">${x[0]}</div><div class="sc-v" style="font-size:22px">${x[1]}</div><div class="sc-d nt">${x[2]}</div></div>`).join('')}</div>
+    <div class="cd" style="margin-bottom:14px"><div class="cd-h"><div class="cd-t">랭킹 조회 조건</div></div><div class="cd-b">
+      <div class="filter-grid">
+        <div class="fg"><label>조회 기간</label><select><option>최근 30일</option><option>최근 3개월</option><option>최근 6개월</option><option>2026년 전체</option></select></div>
+        <div class="fg"><label>채널/서비스</label><select><option>전체</option><option>홈페이지</option><option>홈페이지(채용)</option><option>FAIR AI</option><option>프로젝토리</option><option>나의AAC</option><option>스티비 뉴스레터</option><option>SNS·블로그</option></select></div>
+        <div class="fg"><label>랭킹 기준</label><select><option>종합 점수</option><option>조회/방문</option><option>이용시간</option><option>반응률</option><option>기부금액</option></select></div>
+        <div class="fg"><label>검색어</label><input placeholder="고객명, 콘텐츠명, 태그"></div>
+        <div class="fg filter-actions"><button class="btn btn-p" onclick="toast('랭킹 조회 조건이 적용되었습니다')">검색</button><button class="btn btn-g" onclick="openExportModal('랭킹 조회 결과', ${d.rows.length})">⬇ 내보내기</button></div>
+      </div>
+    </div></div>
+    <div class="cd"><div class="cd-h"><div class="cd-t">${tabs[tab]} 조회 결과</div><button class="btn btn-p" onclick="toast('선택 대상 발송 화면으로 이동합니다')">대상 발송</button></div><div class="cd-b" style="padding:0;overflow-x:auto">
+      <table class="dt"><thead><tr>${d.cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>${d.rows.map((r,idx)=>`<tr>${r.map((c,j)=>`<td>${j===0?`<span class="bd ${idx<3?'bd-am':'bd-mu'}">${c}</span>`:c}</td>`).join('')}</tr>`).join('')}</tbody></table>
+    </div></div>
+  </div>`;
+}
+
+// ═══════════════ DASHBOARD ═══════════════
+function renderDash(ct){
+  const tabs=['all','home','recruit','fair','proj','aac'];
+  const tabNames={all:'전체',home:'홈페이지',recruit:'홈페이지(채용)',fair:'FAIR AI',proj:'프로젝토리',aac:'나의AAC'};
+  const t=S.svcTab||'all';
+  const isAll=t==='all';
+
+  // stats per tab
+  const total=isAll?members.length:members.filter(m=>m.svcs[t]).length;
+  const active=isAll?members.filter(m=>m.status==='활성').length:members.filter(m=>m.svcs[t]&&m.status==='활성').length;
+  const newM=isAll?members.filter(m=>m.date>='2026-05-01').length:members.filter(m=>m.svcs[t]&&(m.svcs[t].joined||'')>='2026-05-01').length;
+  const dormant=members.filter(m=>m.tags.includes('최근 6개월 미접속')&&(isAll||m.svcs[t])).length;
+
+  let statsHtml=`
+  <div class="sg">
+    <div class="sc" style="--sc-c:var(--pri)"><div class="sc-l">${isAll?'전체 회원수':'연동 회원수'}</div><div class="sc-v">${total.toLocaleString()}</div><div class="sc-d up">▲ 8.2%</div></div>
+    <div class="sc" style="--sc-c:var(--mint)"><div class="sc-l">활성 회원</div><div class="sc-v">${active}</div><div class="sc-d nt">${Math.round(active/total*100)}%</div></div>
+    <div class="sc" style="--sc-c:var(--acc)"><div class="sc-l">이번달 신규</div><div class="sc-v">${newM}</div><div class="sc-d up">▲ 12%</div></div>
+    <div class="sc" style="--sc-c:var(--coral)"><div class="sc-l">휴면 회원</div><div class="sc-v">${dormant}</div><div class="sc-d ${dormant>0?'dn':'nt'}">${dormant>0?'관리 필요':'양호'}</div></div>
+  </div>`;
+
+  const donationTotal=donations.reduce((a,d)=>a+d.month,0);
+  const donationHtml=`<div class="sg">
+    <div class="sc" style="--sc-c:var(--amber)"><div class="sc-l">당월 기부금액</div><div class="sc-v">₩${Math.round(donationTotal/10000).toLocaleString()}만</div><div class="sc-d up">정기+일시 합산</div></div>
+    <div class="sc" style="--sc-c:var(--mint)"><div class="sc-l">정기기부자</div><div class="sc-v">${donations.filter(d=>d.type==='정기기부').length}</div><div class="sc-d nt">자동 결제 관리</div></div>
+    <div class="sc" style="--sc-c:var(--pri)"><div class="sc-l">영수증 신청</div><div class="sc-v">${receiptRequests.length}</div><div class="sc-d dn">발급대기 ${receiptRequests.filter(r=>r.status==='발급대기').length}건</div></div>
+    <div class="sc" style="--sc-c:var(--purple)"><div class="sc-l">전환 후보</div><div class="sc-v">720</div><div class="sc-d up">고접점 고객군</div></div>
+  </div>`;
+  const selectedMetric=platformMetrics[t];
+  const heartbeatNote='※ 이용시간은 로그인/접속 상태만으로 계산하지 않고, 화면 활성 상태에서 주기적으로 발생하는 하트비트 신호를 기준으로 산정합니다. 예: 15초 단위 활성 이벤트 수집 후 비활성·백그라운드 상태는 제외.';
+  const usageHtml=isAll
+    ? `<div class="cd" style="margin-bottom:20px"><div class="cd-h"><div><div class="cd-t">서비스별 채널 이용 현황</div><div style="font-size:13px;color:var(--txt2);margin-top:4px">전체 탭에서는 각 서비스의 PC 웹, 모바일 웹, 앱 이용 채널을 비교</div></div></div><div class="cd-b"><div class="platform-grid">${Object.entries(platformMetrics).map(([k,u])=>`<div class="platform-card"><div class="platform-head"><div class="platform-title">${svcIcon(k)}${u.label}</div><div class="platform-total">월 방문 ${u.total}회</div></div><div class="channel-list">${u.channels.map(c=>`<div class="channel-row"><div class="channel-name">${c.name}<span class="channel-badge">${c.badge}</span></div><div class="channel-track"><div class="channel-fill" style="width:${c.rate}%;background:${k==='aac'?'linear-gradient(90deg,var(--purple),var(--acc))':k==='proj'?'linear-gradient(90deg,var(--mint),var(--pri))':k==='fair'?'linear-gradient(90deg,var(--acc),var(--pri))':k==='recruit'?'linear-gradient(90deg,var(--amber),var(--pri))':'linear-gradient(90deg,var(--pri),var(--acc))'}"></div></div><div class="channel-rate">${c.rate}%</div><div class="channel-time">${c.time}</div></div>`).join('')}</div></div>`).join('')}</div><div class="dash-note">${heartbeatNote}<br>※ 나의AAC는 서비스 소개 웹사이트와 실제 앱 이용 채널을 분리합니다. 앱은 모바일 버전과 태블릿 버전의 이용률·하트비트 기반 이용시간을 별도로 확인합니다.</div></div></div>`
+    : `<div class="cd" style="margin-bottom:20px"><div class="cd-h"><div><div class="cd-t">${selectedMetric.label} 이용 현황</div><div style="font-size:13px;color:var(--txt2);margin-top:4px">선택한 서비스의 채널별 이용률, 월 이용량, 하트비트 기반 평균 이용시간</div></div><div class="platform-total">월 방문/실행 ${selectedMetric.total}회</div></div><div class="cd-b"><div class="platform-card" style="padding:16px"><div class="platform-head"><div class="platform-title">${svcIcon(t)}${selectedMetric.label} 채널 상세</div><div class="platform-total">활성 기준: 최근 30일</div></div><div class="channel-list">${selectedMetric.channels.map(c=>`<div class="channel-row"><div class="channel-name">${c.name}<span class="channel-badge">${c.badge}</span></div><div class="channel-track"><div class="channel-fill" style="width:${c.rate}%;background:${t==='aac'?'linear-gradient(90deg,var(--purple),var(--acc))':t==='proj'?'linear-gradient(90deg,var(--mint),var(--pri))':t==='fair'?'linear-gradient(90deg,var(--acc),var(--pri))':t==='recruit'?'linear-gradient(90deg,var(--amber),var(--pri))':'linear-gradient(90deg,var(--pri),var(--acc))'}"></div></div><div class="channel-rate">${c.rate}%</div><div class="channel-time">${c.time}</div></div>`).join('')}</div></div><div class="sg" style="margin-top:12px;margin-bottom:0"><div class="sc" style="--sc-c:var(--pri)"><div class="sc-l">월 방문/실행</div><div class="sc-v">${selectedMetric.total}</div><div class="sc-d nt">채널 합산</div></div><div class="sc" style="--sc-c:var(--mint)"><div class="sc-l">활성 이용률</div><div class="sc-v">${Math.round(selectedMetric.channels.reduce((a,c)=>a+c.rate,0)/selectedMetric.channels.length)}%</div><div class="sc-d up">최근 30일</div></div><div class="sc" style="--sc-c:var(--amber)"><div class="sc-l">이용시간 산정</div><div class="sc-v" style="font-size:20px">Heartbeat</div><div class="sc-d nt">15초 활성 신호</div></div><div class="sc" style="--sc-c:var(--purple)"><div class="sc-l">주요 채널</div><div class="sc-v" style="font-size:20px">${selectedMetric.channels.slice().sort((a,b)=>b.rate-a.rate)[0].name}</div><div class="sc-d up">이용률 기준</div></div></div><div class="dash-note">${heartbeatNote}</div></div></div>`;
+
+  // Segment breakdown (only for 전체)
+  let segHtml='';
+  if(isAll){
+    const segCounts=Object.entries(TAG_MAP).map(([label,{cls}])=>{
+      const c=members.filter(m=>m.tags.includes(label)).length;
+      return {label,cls,count:c};
+    }).sort((a,b)=>b.count-a.count);
+    const maxC=Math.max(...segCounts.map(s=>s.count),1);
+    segHtml=`<div class="cd" style="margin-bottom:12px"><div class="cd-h"><div class="cd-t">마케팅 세그먼트 분포</div></div><div class="cd-b"><div class="seg-bars">
+    ${segCounts.map(s=>{
+      const pct=Math.round(s.count/maxC*100);
+      const color=getComputedStyle(document.documentElement).getPropertyValue(
+        s.cls==='tag-aac'?'--purple':s.cls==='tag-ai'?'--pri':s.cls==='tag-proj'?'--mint':
+        s.cls==='tag-donate'?'--amber':s.cls==='tag-event'?'--amber':s.cls==='tag-news'?'--pri':
+        s.cls==='tag-dormant'?'--coral':s.cls==='tag-child'?'--coral':'--txt3'
+      ).trim()||'#6a7694';
+      const cssColor=s.cls==='tag-aac'?'var(--purple)':s.cls==='tag-ai'?'var(--pri)':s.cls==='tag-proj'?'var(--mint)':
+        s.cls==='tag-donate'?'var(--amber)':s.cls==='tag-event'?'#fb923c':s.cls==='tag-news'?'#818cf8':
+        s.cls==='tag-dormant'?'var(--coral)':s.cls==='tag-child'?'#f472b6':'#94a3b8';
+      return `<div class="seg-row"><div class="seg-label">${s.label}</div><div class="seg-track"><div class="seg-fill" style="width:${pct}%;background:${cssColor}"><span>${s.count}명</span></div></div><div class="seg-val">${Math.round(s.count/members.length*100)}%</div></div>`;
+    }).join('')}
+    </div></div></div>`;
+  }
+
+  // Charts
+  const chartProfiles={
+    all:{data:[120,1840,260,2120,190,2380],note:'전체 통합회원 기준 · 월별 증감폭이 크게 보이도록 조정'},
+    home:{data:[80,920,150,1380,280,1760],note:'홈페이지 기준 · 기부/멤버십 유입 증가 흐름'},
+    recruit:{data:[40,480,120,760,210,980],note:'홈페이지(채용) 기준 · 채용공고 공개 및 지원 마감 시점별 유입 반영'},
+    fair:{data:[640,110,1280,180,1680,390],note:'FAIR AI 기준 · 캠페인/콘텐츠 공개 월에 가입 집중'},
+    proj:{data:[180,1180,520,220,1540,430],note:'프로젝토리 기준 · 프로그램 모집 시점별 등락 반영'},
+    aac:{data:[120,680,210,1620,540,2060],note:'나의AAC 기준 · 앱/태블릿 이용 전환 월 상승 반영'}
+  };
+  const profile=chartProfiles[t]||chartProfiles.all;
+  const chartData=profile.data;
+  const maxBar=Math.max(...chartData);
+  const months=['12월','1월','2월','3월','4월','5월'];
+
+  // Type breakdown for donut
+  const typeMembers=isAll?members:members.filter(m=>m.svcs[t]);
+  const tCounts={회원:typeMembers.filter(m=>m.type==='회원').length,이용자:typeMembers.filter(m=>m.type==='이용자').length,후원자:typeMembers.filter(m=>m.type==='후원자').length};
+  const tTotal=Object.values(tCounts).reduce((a,b)=>a+b,0)||1;
+  const tPcts={회원:Math.round(tCounts.회원/tTotal*100),이용자:Math.round(tCounts.이용자/tTotal*100),후원자:Math.round(tCounts.후원자/tTotal*100)};
+  const d1=tPcts.회원*3.6, d2=tPcts.이용자*3.6, d3=tPcts.후원자*3.6;
+
+  const chartHtml=`<div class="cg">
+    <div class="cd"><div class="cd-h"><div><div class="cd-t">월별 가입 추이</div><div style="font-size:13px;color:var(--txt2);margin-top:4px">${profile.note}</div></div></div><div class="cd-b">
+      <div class="bars">${chartData.map((v,i)=>{const diff=i===0?0:v-chartData[i-1];const cls=diff>0?'up':diff<0?'dn':'nt';const sign=diff>0?'+':'';return `<div class="bc"><div class="br ${cls}" style="height:${36+Math.round(v/maxBar*150)}px;--bar-c:${isAll?'var(--pri)':SVC_COLORS[t]}" data-v="${v}명"></div><div class="bl">${months[i]}</div><div class="trend ${cls}">${i===0?'기준':sign+diff}</div></div>`}).join('')}</div>
+      <div class="chart-summary"><div class="chart-chip"><b>${Math.max(...chartData).toLocaleString()}명</b><span>최고 월 가입</span></div><div class="chart-chip"><b>${Math.min(...chartData).toLocaleString()}명</b><span>최저 월 가입</span></div><div class="chart-chip"><b>${(chartData[chartData.length-1]-chartData[0]).toLocaleString()}명</b><span>기간 순증</span></div></div>
+    </div></div>
+    <div class="cd"><div class="cd-h"><div class="cd-t">회원 유형 비율</div></div><div class="cd-b" style="display:flex;align-items:center;gap:20px">
+      <div class="donut" style="background:conic-gradient(var(--pri) 0deg ${d1}deg,var(--mint) ${d1}deg ${d1+d2}deg,var(--amber) ${d1+d2}deg 360deg)"></div>
+      <div class="dleg">
+        <div class="dl"><div class="dd" style="background:var(--pri)"></div>회원<div class="dp">${tPcts.회원}%</div></div>
+        <div class="dl"><div class="dd" style="background:var(--mint)"></div>이용자<div class="dp">${tPcts.이용자}%</div></div>
+        <div class="dl"><div class="dd" style="background:var(--amber)"></div>후원자<div class="dp">${tPcts.후원자}%</div></div>
+      </div>
+    </div></div>
+  </div>`;
+
+  // Recent activity
+  const actHtml=`<div class="cd"><div class="cd-h"><div class="cd-t">최근 활동</div></div><div class="cd-b" style="padding:8px 16px">
+    <div class="ar"><div class="ar-t">10:23</div><div class="ar-e">김OO 회원가입 완료</div><div class="ar-s">프로젝토리</div><span class="bd bd-mt">완료</span></div>
+    <div class="ar"><div class="ar-t">10:15</div><div class="ar-e">이OO 마케팅 동의 변경</div><div class="ar-s">통합회원</div><span class="bd bd-am">변경</span></div>
+    <div class="ar"><div class="ar-t">09:58</div><div class="ar-e">박OO AAC 보호자 등록</div><div class="ar-s">나의AAC</div><span class="bd bd-pri">진행</span></div>
+    <div class="ar"><div class="ar-t">09:42</div><div class="ar-e">최OO 멤버십 서류 제출</div><div class="ar-s">프로젝토리</div><span class="bd bd-mt">완료</span></div>
+  </div></div>`;
+
+  ct.innerHTML=`<div class="scr on">
+    <div class="tabs">${tabs.map(k=>`<div class="tab ${t===k?'on':''}" onclick="S.svcTab='${k}';render()">${tabNames[k]}</div>`).join('')}</div>
+    ${statsHtml}${donationHtml}${usageHtml}${segHtml}${chartHtml}${actHtml}
+  </div>`;
+}
+
+
+// ═══════════════ CRM STRATEGY ═══════════════
+function renderCrm(ct){
+  ct.innerHTML=`<div class="scr on">
+    <div class="strategy-grid">
+      <div class="strategy-card"><div class="num">01</div><h3>CRM 대상 고객</h3><p>채용지원자, 나의AAC 이용자, 프로젝토리 회원, FAIR AI 이용자, 가치지음 멤버십·기부자를 하나의 고객 접점으로 관리합니다.</p></div>
+      <div class="strategy-card"><div class="num">02</div><h3>통합 고객 프로필</h3><p>기본정보, 본인인증, 동의·정책 정보, 서비스 접점, 참여·후원 이력을 고객별 프로필로 묶습니다.</p></div>
+      <div class="strategy-card"><div class="num">03</div><h3>홍보·마케팅 실행</h3><p>관심 분야와 참여 이력에 맞춰 뉴스레터, 행사, 프로그램, 후원 캠페인 안내 대상을 선별합니다.</p></div>
+    </div>
+    <div class="flow3" style="margin-bottom:20px">
+      <div class="flow-card"><h3>서비스별 접점</h3><ul><li>홈페이지: 방문, 멤버십, 기부</li><li>홈페이지(채용): 채용공고 조회, 지원서 제출, 전형 상태</li><li>나의AAC: 로그인, 앱 실행, 기능 사용</li><li>프로젝토리: 신청, 서류 제출, 참석</li><li>FAIR AI: 콘텐츠 조회, 행사 신청</li><li>가치지음/기부: 후원 유형, 금액, 지속 여부</li></ul></div>
+      <div class="flow-card"><h3>고객 상태 판단</h3><ul><li>최근 방문일과 30일 활성 여부</li><li>조회·클릭·체류 기반 관심 콘텐츠</li><li>신청·제출·참석 기반 참여 깊이</li><li>기부 여부, 지속성, 영수증 신청</li><li>신규·활성·관심·휴면·전환 후보 분류</li></ul></div>
+      <div class="flow-card"><h3>활용 시나리오</h3><ul><li>AAC 관심 고객 → 나의AAC 소식 안내</li><li>프로그램 참여 고객 → 행사·후속 참여 안내</li><li>고접점 고객 → 후원 캠페인 우선 안내</li><li>휴면 고객 → 재방문 유도 안내</li><li>수신 동의 고객 → 선별 커뮤니케이션</li></ul></div>
+    </div>
+    <div class="sg">
+      <div class="sc" style="--sc-c:var(--pri)"><div class="sc-l">CRM 대상</div><div class="sc-v">12,840</div><div class="sc-d nt">통합 프로필 기준</div></div>
+      <div class="sc" style="--sc-c:var(--mint)"><div class="sc-l">30일 활성</div><div class="sc-v">3,210</div><div class="sc-d up">최근 방문·로그인</div></div>
+      <div class="sc" style="--sc-c:var(--amber)"><div class="sc-l">수신 동의</div><div class="sc-v">58%</div><div class="sc-d nt">마케팅 가능 모수</div></div>
+      <div class="sc" style="--sc-c:var(--coral)"><div class="sc-l">전환 후보</div><div class="sc-v">720</div><div class="sc-d up">후원·참여 우선군</div></div>
+    </div>
+    <div class="cd"><div class="cd-h"><div class="cd-t">운영 원칙</div></div><div class="cd-b" style="font-size:12px;color:var(--txt2);line-height:1.8">개인정보 수집·활용은 정보주체 동의와 처리방침 고지 범위 내에서 운영하며, 공통 정보와 서비스별 부가정보를 구분해 관리합니다. 관리자 화면에서는 회원 조회, 동의 이력, 서비스 참여 이력, 후속 안내 대상 분류를 한 곳에서 확인하는 구조를 전제로 합니다.</div></div>
+  </div>`;
+}
+
+// ═══════════════ MEMBER LIST (전체) ═══════════════
+function renderMembers(ct){
+  if(S.detailIdx!==null) return renderDetail(ct, members[S.detailIdx]);
+  const tagKeys=Object.keys(TAG_MAP);
+  const filtered=getFiltered(members);
+  const totalP=Math.ceil(filtered.length/PER);
+  if(S.page>totalP)S.page=totalP||1;
+  const slice=filtered.slice((S.page-1)*PER,S.page*PER);
+
+  ct.innerHTML=`<div class="scr on">
+    <div class="filter-panel">
+      <div class="filter-title"><span>회원 검색 조건</span><button class="btn btn-g" onclick="resetMemberFilters()">초기화</button></div>
+      <div class="filter-grid">
+        <div class="fg"><label>통합 검색</label><input placeholder="이름, 이메일, 연락처" value="${S.search}" oninput="S.search=this.value;S.page=1;render()"></div>
+        <div class="fg"><label>회원 유형</label><select onchange="S.filter=this.value;S.page=1;render()"><option value="all" ${S.filter==='all'?'selected':''}>전체</option><option ${S.filter==='회원'?'selected':''}>회원</option><option ${S.filter==='이용자'?'selected':''}>이용자</option><option ${S.filter==='후원자'?'selected':''}>후원자</option></select></div>
+        <div class="fg"><label>회원 상태</label><select onchange="S.statusFilter=this.value;S.page=1;render()"><option value="all" ${S.statusFilter==='all'?'selected':''}>전체</option><option ${S.statusFilter==='활성'?'selected':''}>활성</option><option ${S.statusFilter==='휴면'?'selected':''}>휴면</option><option ${S.statusFilter==='탈퇴'?'selected':''}>탈퇴</option></select></div>
+        <div class="fg"><label>이용 서비스</label><select onchange="S.svcFilter=this.value;S.page=1;render()"><option value="all" ${S.svcFilter==='all'?'selected':''}>전체</option><option value="home" ${S.svcFilter==='home'?'selected':''}>홈페이지</option><option value="recruit" ${S.svcFilter==='recruit'?'selected':''}>홈페이지(채용)</option><option value="fair" ${S.svcFilter==='fair'?'selected':''}>FAIR AI</option><option value="proj" ${S.svcFilter==='proj'?'selected':''}>프로젝토리</option><option value="aac" ${S.svcFilter==='aac'?'selected':''}>나의AAC</option></select></div>
+        <div class="fg"><label>수신 동의</label><select onchange="S.consentFilter=this.value;S.page=1;render()"><option value="all" ${S.consentFilter==='all'?'selected':''}>전체</option><option value="agree" ${S.consentFilter==='agree'?'selected':''}>마케팅 동의</option><option value="reject" ${S.consentFilter==='reject'?'selected':''}>마케팅 미동의</option></select></div>
+        <div class="fg"><label>기부 상태</label><select onchange="S.donationFilter=this.value;S.page=1;render()"><option value="all" ${S.donationFilter==='all'?'selected':''}>전체</option><option value="donor" ${S.donationFilter==='donor'?'selected':''}>기부 이력 있음</option><option value="prospect" ${S.donationFilter==='prospect'?'selected':''}>전환 후보</option><option value="none" ${S.donationFilter==='none'?'selected':''}>기부 이력 없음</option></select></div>
+        <div class="fg"><label>가입일 시작</label><input type="date" value="${S.dateFrom}" onchange="S.dateFrom=this.value;S.page=1;render()"></div>
+        <div class="fg"><label>가입일 종료</label><input type="date" value="${S.dateTo}" onchange="S.dateTo=this.value;S.page=1;render()"></div>
+        <div class="fg filter-actions"><button class="btn btn-p" onclick="toast('검색 조건 적용 완료')">검색</button><button class="btn btn-g" onclick="openExportModal('회원 목록', ${filtered.length})">⬇ 내보내기</button></div>
+      </div>
+    </div>
+    <div style="margin-bottom:10px">
+      <div style="font-size:11px;color:var(--txt3);margin-bottom:6px">마케팅 태그 필터</div>
+      <div class="chips">${tagKeys.map(k=>`<span class="ch ${S.tagFilter===k?'on':''}" onclick="S.tagFilter=S.tagFilter==='${k}'?'':'${k}';S.page=1;render()">${k}</span>`).join('')}</div>
+    </div>
+    <div class="cd"><div class="cd-b" style="padding:0;overflow-x:auto">
+      <table class="dt"><thead><tr><th>이름</th><th>이메일</th><th>유형</th><th>가입일</th><th>마케팅 태그</th><th>상태</th></tr></thead>
+      <tbody>${slice.map((m,i)=>{
+        const ri=members.indexOf(m);
+        const tc=m.type==='회원'?'bd-pri':m.type==='후원자'?'bd-am':'bd-mu';
+        const sc=m.status==='활성'?'bd-mt':m.status==='휴면'?'bd-am':'bd-co';
+        return `<tr onclick="S.detailIdx=${ri};render()">
+          <td><div class="uc2"><div class="av2">${m.name[0]}</div>${m.name}</div></td>
+          <td style="color:var(--txt2)">${m.email}</td>
+          <td><span class="bd ${tc}">${m.type}</span></td>
+          <td style="color:var(--txt3);font-family:'JetBrains Mono',monospace;font-size:11px">${m.date}</td>
+          <td>${m.tags.slice(0,3).map(t=>`<span class="tag ${TAG_MAP[t]?.cls||''}">${t}</span>`).join('')}${m.tags.length>3?`<span class="tag tag-org">+${m.tags.length-3}</span>`:''}</td>
+          <td><span class="bd ${sc}">${m.status}</span></td>
+        </tr>`;
+      }).join('')}</tbody></table>
+    </div></div>
+    ${pagHtml(totalP)}
+  </div>`;
+}
+
+// ═══════════════ SERVICE MEMBER LIST ═══════════════
+function renderSvcMembers(ct){
+  const svc=S.svcView;
+  if(S.detailIdx!==null) return renderDetail(ct, members[S.detailIdx]);
+  const svcMembers=members.filter(m=>m.svcs[svc]);
+  const filtered=getFiltered(svcMembers);
+  const totalP=Math.ceil(filtered.length/PER);
+  if(S.page>totalP)S.page=totalP||1;
+  const slice=filtered.slice((S.page-1)*PER,S.page*PER);
+
+  // Extra columns per service
+  const extraTh=svc==='home'?'<th>기부</th><th>멤버십</th>':svc==='recruit'?'<th>지원분야</th><th>전형상태</th>':svc==='fair'?'<th>이용현황</th>':svc==='proj'?'<th>멤버십</th><th>서류</th>':svc==='aac'?'<th>역할</th><th>상세</th>':'';
+
+  function extraTd(m){
+    const d=m.svcs[svc];if(!d)return '';
+    if(svc==='home')return `<td style="font-size:11px">${d.donation||'—'}</td><td><span class="bd bd-pri">${d.membership||'—'}</span></td>`;
+    if(svc==='recruit')return `<td style="font-size:11px;color:var(--txt2)">${d.position||'—'}</td><td><span class="bd bd-am">${d.status||'—'}</span></td>`;
+    if(svc==='fair')return `<td style="font-size:11px;color:var(--txt2)">${d.usage||'—'}</td>`;
+    if(svc==='proj')return `<td><span class="bd bd-mt">${d.membership||'—'}</span></td><td style="font-size:11px;color:var(--txt2)">${d.docs||'—'}</td>`;
+    if(svc==='aac')return `<td style="font-size:11px">${d.role||'—'}</td><td style="font-size:11px;color:var(--txt2)">${d.child||d.device||'—'}</td>`;
+    return '';
+  }
+
+  ct.innerHTML=`<div class="scr on">
+    <div class="tb-bar">
+      <div class="sr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input placeholder="이름, 이메일 검색..." value="${S.search}" oninput="S.search=this.value;S.page=1;render()"></div>
+      <div class="chips">
+        <span class="ch ${S.filter==='all'?'on':''}" onclick="S.filter='all';S.page=1;render()">전체</span>
+        <span class="ch ${S.filter==='이용자'?'on':''}" onclick="S.filter='이용자';S.page=1;render()">이용자</span>
+        <span class="ch ${S.filter==='후원자'?'on':''}" onclick="S.filter='후원자';S.page=1;render()">후원자</span>
+        <span class="ch ${S.filter==='회원'?'on':''}" onclick="S.filter='회원';S.page=1;render()">회원</span>
+      </div>
+    </div>
+    <div class="cd"><div class="cd-b" style="padding:0;overflow-x:auto">
+      <table class="dt"><thead><tr><th>이름</th><th>이메일</th><th>유형</th><th>연동일</th>${extraTh}<th>태그</th><th>상태</th></tr></thead>
+      <tbody>${slice.map(m=>{
+        const ri=members.indexOf(m);
+        const tc=m.type==='회원'?'bd-pri':m.type==='후원자'?'bd-am':'bd-mu';
+        const sc=m.status==='활성'?'bd-mt':m.status==='휴면'?'bd-am':'bd-co';
+        const jd=m.svcs[svc]?.joined||m.date;
+        return `<tr onclick="S.detailIdx=${ri};render()">
+          <td><div class="uc2"><div class="av2">${m.name[0]}</div>${m.name}</div></td>
+          <td style="color:var(--txt2)">${m.email}</td>
+          <td><span class="bd ${tc}">${m.type}</span></td>
+          <td style="color:var(--txt3);font-family:'JetBrains Mono',monospace;font-size:11px">${jd}</td>
+          ${extraTd(m)}
+          <td>${m.tags.slice(0,2).map(t=>`<span class="tag ${TAG_MAP[t]?.cls||''}">${t}</span>`).join('')}</td>
+          <td><span class="bd ${sc}">${m.status}</span></td>
+        </tr>`;
+      }).join('')}</tbody></table>
+    </div></div>
+    ${pagHtml(totalP)}
+  </div>`;
+}
+
+// ═══════════════ MEMBER DETAIL ═══════════════
+function renderDetail(ct, m){
+  const tc=m.type==='회원'?'bd-pri':m.type==='후원자'?'bd-am':'bd-mu';
+  const sc=m.status==='활성'?'bd-mt':m.status==='휴면'?'bd-am':'bd-co';
+
+  // Service-specific sections (only connected)
+  let svcSections='';
+  const svcConfigs={
+    home:{name:'홈페이지',color:'var(--pri)',fields:m=>([['기부현황',m.donation||'없음'],['멤버십',m.membership||'—']])},
+    recruit:{name:'홈페이지(채용)',color:'var(--amber)',fields:m=>([['지원분야',m.position||'—'],['전형상태',m.status||'—']])},
+    fair:{name:'FAIR AI',color:'var(--acc)',fields:m=>([['이용현황',m.usage||'—']])},
+    proj:{name:'프로젝토리',color:'var(--mint)',fields:m=>([['멤버십',m.membership||'—'],['서류상태',m.docs||'—']])},
+    aac:{name:'나의AAC',color:'var(--purple)',fields:m=>([['역할',m.role||'—'],m.child?['대상아동',m.child]:m.device?['이용기기',m.device]:['상세','—']])},
+  };
+
+  Object.entries(svcConfigs).forEach(([key,cfg])=>{
+    if(!m.svcs[key])return;
+    const fields=cfg.fields(m.svcs[key]);
+    svcSections+=`<div class="svc-sec">
+      <div class="svc-sec-h"><div class="dot" style="background:${cfg.color}"></div><div class="nm">${cfg.name}</div><span class="bd bd-mt" style="margin-left:auto;font-size:9px">연동</span><span style="font-size:10px;color:var(--txt3);margin-left:4px">${m.svcs[key].joined||''}</span></div>
+      <div class="svc-sec-b">${fields.map(([l,v])=>`<div class="ir"><div class="il">${l}</div><div class="iv">${v}</div></div>`).join('')}</div>
+    </div>`;
+  });
+
+  // Not connected services
+  const notConnected=Object.entries(SVCS).filter(([k])=>!m.svcs[k]);
+  if(notConnected.length){
+    svcSections+=notConnected.map(([k,name])=>`<div class="svc-sec">
+      <div class="svc-sec-h" style="opacity:.4"><div class="dot" style="background:var(--txt4)"></div><div class="nm">${name}</div><span class="bd bd-mu" style="margin-left:auto;font-size:9px">미연동</span></div>
+    </div>`).join('');
+  }
+
+  ct.innerHTML=`<div class="scr on detail-view">
+    <div class="back" onclick="S.detailIdx=null;render()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> 목록으로 돌아가기</div>
+    <div class="prof">
+      <div class="prof-av">${m.name[0]}</div>
+      <div style="flex:1">
+        <div class="prof-nm">${m.name} <span class="bd ${tc}">${m.type}</span> <span class="bd ${sc}">${m.status}</span></div>
+        <div class="prof-meta">${m.email} · ${m.phone}</div>
+        <div class="prof-id">통합 ID: USR-${m.date.replace(/-/g,'')}-${String(members.indexOf(m)).padStart(4,'0')}</div>
+        <div class="prof-tags">${m.tags.map(t=>`<span class="tag ${TAG_MAP[t]?.cls||''}">${t}</span>`).join('')}${m.tags.length===0?'<span style="font-size:11px;color:var(--txt4)">태그 없음</span>':''}</div>
+      </div>
+      <div class="prof-act"><button class="btn btn-g" onclick="toast('비밀번호 초기화 메일 발송')">비밀번호 초기화</button><button class="btn btn-p" onclick="toast('편집 모드')">편집</button></div>
+    </div>
+    <div class="dg">
+      <div class="cd"><div class="cd-h"><div class="cd-t">공통 기본정보</div></div><div class="cd-b">
+        <div class="ir"><div class="il">이름</div><div class="iv">${m.name}</div></div>
+        <div class="ir"><div class="il">생년월일</div><div class="iv">${m.birth}</div></div>
+        <div class="ir"><div class="il">본인인증</div><div class="iv"><span class="bd bd-mt">${m.auth} 인증 완료</span></div></div>
+        <div class="ir"><div class="il">연락처</div><div class="iv">${m.phone}</div></div>
+        <div class="ir"><div class="il">이메일</div><div class="iv">${m.email}</div></div>
+        <div class="ir"><div class="il">주소</div><div class="iv">${m.addr}</div></div>
+        <div class="ir"><div class="il">가입일</div><div class="iv">${m.date}</div></div>
+      </div></div>
+      <div>
+        <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:var(--txt2)">서비스별 부가정보</div>
+        ${svcSections}
+      </div>
+    </div>
+    <div class="dg">
+      <div class="cd"><div class="cd-h"><div class="cd-t">동의 현황</div></div><div class="cd-b" style="padding:8px 16px">
+        ${['개인정보 처리방침','서비스 이용약관','마케팅 정보 수신','제3자 정보 제공','위치정보 수집'].map((c,i)=>{
+          const agreed=i<2||(i===2&&m.tags.includes('뉴스레터 반응 높음'));
+          return `<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bdr)"><span style="font-size:12px">${c}</span><span class="bd ${agreed?'bd-mt':'bd-co'}">${agreed?'동의':'미동의'}</span></div>`;
+        }).join('')}
+      </div></div>
+      <div class="cd"><div class="cd-h"><div class="cd-t">활동 이력</div></div><div class="cd-b">
+        <div class="timeline">
+          <div class="tl-i"><div class="tl-d" style="background:var(--pri)"></div><div class="tl-t">05-26 10:23</div><div class="tl-e">통합회원 사이트 로그인</div></div>
+          <div class="tl-i"><div class="tl-d" style="background:var(--amber)"></div><div class="tl-t">05-25 14:10</div><div class="tl-e">마케팅 동의 변경</div></div>
+          <div class="tl-i"><div class="tl-d" style="background:var(--mint)"></div><div class="tl-t">05-24 09:30</div><div class="tl-e">${Object.keys(m.svcs)[0]?SVCS[Object.keys(m.svcs)[0]]+' 이용':'활동 없음'}</div></div>
+          <div class="tl-i"><div class="tl-d" style="background:var(--txt3)"></div><div class="tl-t">05-20 11:00</div><div class="tl-e">비밀번호 변경</div></div>
+        </div>
+      </div></div>
+    </div>
+  </div>`;
+}
+
+
+
+// ═══════════════ OPERATIONS MANAGEMENT ═══════════════
+function renderOperations(ct,type){
+  const configs={
+    roles:{
+      cards:[['관리자 계정','18명','활성 계정 기준'],['권한 그룹','6개','Super Admin 포함'],['개인정보 조회 권한','5명','승인 필요'],['미사용 계정','2명','점검 대상']],
+      title:'권한 그룹 목록',
+      headers:['권한 그룹','주요 권한','인원','개인정보 접근','상태'],
+      rows:[['Super Admin','전체 메뉴·권한 설정','2','허용','활성'],['경영지원','기부금액·영수증·회원 조회','4','제한 허용','활성'],['CRM 운영','회원 검색·발송·게시판','5','마스킹 조회','활성'],['서비스 운영','서비스별 회원·게시글 관리','6','미허용','활성'],['읽기 전용','대시보드·통계 조회','1','미허용','활성']]
+    },
+    adminLoginLogs:{
+      cards:[['오늘 로그인','24건','성공 기준'],['2차 인증 실패','3건','문자 코드 오류'],['외부 IP 접속','1건','확인 필요'],['잠금 계정','0건','정상']],
+      title:'관리자 로그인 이력',
+      headers:['일시','관리자','접속 IP','2차 인증','결과'],
+      rows:[['2026-05-27 14:05','관리자','10.10.24.12','문자 인증 완료','성공'],['2026-05-27 13:41','경영지원 담당','10.10.18.33','문자 인증 완료','성공'],['2026-05-27 11:22','CRM 운영자','10.10.21.45','코드 오류 1회','성공'],['2026-05-27 09:18','외부 협력사','211.***.***.12','인증 실패','차단']]
+    },
+    usageLogs:{
+      cards:[['오늘 이벤트','18,420건','클릭·조회·실행'],['하트비트 수집','9,860건','15초 활성 신호'],['평균 이용시간','12m 40s','비활성 제외'],['오류 이벤트','12건','점검 필요']],
+      title:'서비스 이용 로그',
+      headers:['일시','서비스','채널','이벤트','하트비트/체류'],
+      rows:[['2026-05-27 14:10','나의AAC','태블릿 앱','AAC 보드 실행','31m 25s'],['2026-05-27 14:04','홈페이지','모바일 웹','기부 신청 진입','03m 12s'],['2026-05-27 13:58','홈페이지(채용)','PC 웹','채용공고 조회','06m 35s'],['2026-05-27 13:50','FAIR AI','PC 웹','콘텐츠 조회','12m 10s'],['2026-05-27 13:22','프로젝토리','모바일 웹','서류 제출','13m 05s']]
+    },
+    accessLogs:{
+      cards:[['개인정보 조회','132건','오늘 기준'],['다운로드','4건','권한자 승인'],['정보 수정','18건','이력 보관'],['마스킹 해제','7건','사유 필수']],
+      title:'개인정보 접근 이력',
+      headers:['일시','관리자','처리 유형','대상 정보','사유'],
+      rows:[['2026-05-27 13:30','경영지원 담당','영수증 정보 조회','이름·연락처·기부금액','영수증 발급 처리'],['2026-05-27 12:10','CRM 운영자','회원 목록 다운로드','이메일·수신동의','행사 안내 대상 추출'],['2026-05-27 11:40','서비스 운영자','회원 상세 조회','프로젝토리 제출서류 상태','문의 응대'],['2026-05-27 10:20','관리자','권한 변경','관리자 계정','조직 변경 반영']]
+    },
+    systemSettings:{
+      cards:[['연동 시스템','5개','NICE·PG·스티비 등'],['보안 정책','적용','2차 인증·IP 제한'],['발송 제한','22:00~08:00','야간 발송 제한'],['보관 정책','5년','로그 보관 기준']],
+      title:'운영 설정 항목',
+      headers:['설정 구분','설정값','적용 범위','상태','비고'],
+      rows:[['본인인증 연동','NICE','통합회원 가입','정상','공통 인증'],['결제 연동','PG사','기부 신청','정상','정기·일시기부'],['뉴스레터 연동','스티비','뉴스레터 발송 기록','정상','성과 데이터 수집'],['관리자 보안','문자 2차 인증','관리자 로그인','적용','4자리 코드'],['로그 보관','5년','접속·이용·접근 로그','적용','감사 대응']]
+    }
+  };
+  const c=configs[type];
+  ct.innerHTML=`<div class="scr on">
+    <div class="sg">${c.cards.map((x,i)=>`<div class="sc" style="--sc-c:${['var(--pri)','var(--mint)','var(--amber)','var(--coral)'][i]}"><div class="sc-l">${x[0]}</div><div class="sc-v">${x[1]}</div><div class="sc-d nt">${x[2]}</div></div>`).join('')}</div>
+    <div class="cd"><div class="cd-h"><div class="cd-t">${c.title}</div><button class="btn btn-g" onclick="openExportModal('운영 로그', 5)">내보내기</button></div><div class="cd-b" style="padding:0;overflow-x:auto">
+      <table class="dt"><thead><tr>${c.headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${c.rows.map(r=>`<tr>${r.map((v,i)=>`<td ${i===0?'style="color:var(--txt3);font-family:JetBrains Mono,monospace"':''}>${v}</td>`).join('')}</tr>`).join('')}</tbody></table>
+    </div></div>
+    <div class="notice-box" style="margin-top:12px">실제 운영 화면에서는 권한자 승인, 개인정보 마스킹, 다운로드 사유 입력, 로그 보관기간, 외부 감사 대응 기준을 함께 적용합니다.</div>
+  </div>`;
+}
+
+
+// ═══════════════ DONATION MANAGEMENT ═══════════════
+function renderDonations(ct){
+  const total=donations.reduce((a,d)=>a+d.month,0);
+  const recurring=donations.filter(d=>d.type==='정기기부').reduce((a,d)=>a+d.amount,0);
+  ct.innerHTML=`<div class="scr on">
+    <div class="sg">
+      <div class="sc" style="--sc-c:var(--amber)"><div class="sc-l">당월 기부금액</div><div class="sc-v">₩${total.toLocaleString()}</div><div class="sc-d up">정기·일시 합산</div></div>
+      <div class="sc" style="--sc-c:var(--mint)"><div class="sc-l">월 정기기부 예상액</div><div class="sc-v">₩${recurring.toLocaleString()}</div><div class="sc-d nt">매월 자동 결제</div></div>
+      <div class="sc" style="--sc-c:var(--pri)"><div class="sc-l">기부자 수</div><div class="sc-v">${donations.length}</div><div class="sc-d up">통합회원 연결 기준</div></div>
+      <div class="sc" style="--sc-c:var(--coral)"><div class="sc-l">영수증 미신청</div><div class="sc-v">${donations.filter(d=>d.receipt==='미신청').length}</div><div class="sc-d nt">안내 대상</div></div>
+    </div>
+    <div class="cd"><div class="cd-h"><div class="cd-t">기부금액 목록</div><button class="btn btn-p" onclick="openExportModal('기부금액 내역', donations.length)">⬇ 내보내기</button></div><div class="cd-b" style="padding:0;overflow-x:auto">
+      <table class="dt"><thead><tr><th>기부자</th><th>기부 유형</th><th>회당 금액</th><th>연간/누적 기준</th><th>결제수단</th><th>시작일</th><th>영수증</th><th>상태</th></tr></thead>
+      <tbody>${donations.map(d=>`<tr><td><div class="uc2"><div class="av2">${d.name[0]}</div>${d.name}</div></td><td><span class="bd ${d.type==='정기기부'?'bd-mt':'bd-am'}">${d.type}</span></td><td style="font-family:'JetBrains Mono',monospace">₩${d.amount.toLocaleString()}</td><td style="font-family:'JetBrains Mono',monospace">₩${d.month.toLocaleString()}</td><td>${d.method}</td><td style="color:var(--txt3);font-family:'JetBrains Mono',monospace;font-size:11px">${d.start}</td><td><span class="bd ${d.receipt==='미신청'?'bd-mu':d.receipt==='발급대기'?'bd-am':'bd-mt'}">${d.receipt}</span></td><td><span class="bd bd-mt">${d.status}</span></td></tr>`).join('')}</tbody></table>
+    </div></div>
+  </div>`;
+}
+
+function renderReceipts(ct){
+  ct.innerHTML=`<div class="scr on">
+    <div class="sg">
+      <div class="sc" style="--sc-c:var(--pri)"><div class="sc-l">전체 신청</div><div class="sc-v">${receiptRequests.length}</div><div class="sc-d nt">최근 신청 기준</div></div>
+      <div class="sc" style="--sc-c:var(--amber)"><div class="sc-l">발급대기</div><div class="sc-v">${receiptRequests.filter(r=>r.status==='발급대기').length}</div><div class="sc-d dn">처리 필요</div></div>
+      <div class="sc" style="--sc-c:var(--mint)"><div class="sc-l">발급완료</div><div class="sc-v">${receiptRequests.filter(r=>r.status==='발급완료').length}</div><div class="sc-d up">완료</div></div>
+      <div class="sc" style="--sc-c:var(--amber)"><div class="sc-l">신청 금액 합계</div><div class="sc-v">₩${receiptRequests.reduce((a,r)=>a+r.amount,0).toLocaleString()}</div><div class="sc-d nt">영수증 대상</div></div>
+    </div>
+    <div class="cd"><div class="cd-h"><div class="cd-t">기부금 영수증 신청 목록</div><button class="btn btn-p" onclick="toast('영수증 일괄 발급 처리')">일괄 발급</button></div><div class="cd-b" style="padding:0;overflow-x:auto">
+      <table class="dt"><thead><tr><th>신청자</th><th>귀속연도</th><th>대상 금액</th><th>신청일</th><th>용도</th><th>처리상태</th></tr></thead>
+      <tbody>${receiptRequests.map(r=>`<tr><td><div class="uc2"><div class="av2">${r.name[0]}</div>${r.name}</div></td><td>${r.year}</td><td style="font-family:'JetBrains Mono',monospace">₩${r.amount.toLocaleString()}</td><td style="color:var(--txt3);font-family:'JetBrains Mono',monospace;font-size:11px">${r.request}</td><td>${r.purpose}</td><td><span class="bd ${r.status==='발급대기'?'bd-am':'bd-mt'}">${r.status}</span></td></tr>`).join('')}</tbody></table>
+    </div></div>
+  </div>`;
+}
+
+
+// ═══════════════ COMMUNICATIONS ═══════════════
+function confirmSend(){
+  const channelName=S.commChannel==='email'?'이메일':S.commChannel==='sms'?'문자':'알림톡';
+  const targetCount=getFiltered(members).filter(m=>S.consentFilter!=='reject').length;
+  if(S.sendMode==='now'){
+    openSendConfirmModal(channelName,targetCount);
+  }else{
+    toast(`${channelName} 예약 발송이 등록되었습니다`);
+  }
+}
+function closeSystemModal(){
+  const modal=document.getElementById('systemModal');
+  if(modal) modal.remove();
+}
+function openSendConfirmModal(channelName,targetCount){
+  closeSystemModal();
+  const modal=document.createElement('div');
+  modal.id='systemModal';
+  modal.className='sys-modal show';
+  modal.onclick=(e)=>{if(e.target===modal) closeSystemModal();};
+  modal.innerHTML=`<div class="sys-dialog" onclick="event.stopPropagation()">
+    <div class="sys-top"><div class="sys-head"><b>즉시 발송 확인</b><span>발송 요청 전 최종 확인 단계</span></div><button class="sys-close" onclick="closeSystemModal()">×</button></div>
+    <div class="sys-body">
+      <div class="send-confirm-icon">!</div>
+      <div style="font-size:16px;font-weight:800;margin-bottom:6px">${channelName}을 즉시 발송할까요?</div>
+      <div style="font-size:12px;color:var(--txt2);line-height:1.65">즉시 발송을 선택하면 대상자에게 발송 대기열이 바로 등록됩니다. 실제 운영에서는 권한자 승인, 수신동의 여부, 야간 발송 제한, 발송 제외 대상 검증이 함께 적용됩니다.</div>
+      <div class="confirm-summary">
+        <div class="confirm-item"><b>${channelName}</b><span>발송 채널</span></div>
+        <div class="confirm-item"><b>${targetCount.toLocaleString()}명</b><span>현재 검색 조건 대상</span></div>
+        <div class="confirm-item"><b>즉시</b><span>발송 시점</span></div>
+        <div class="confirm-item"><b>수신동의 기준</b><span>발송 제외 대상 자동 검증</span></div>
+      </div>
+      <div class="sys-actions"><button class="btn btn-g" onclick="closeSystemModal()">취소</button><button class="btn btn-p" onclick="toast('${channelName} 즉시 발송 요청이 접수되었습니다');closeSystemModal();">발송 요청</button></div>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+}
+
+function openExportModal(title,count){
+  closeSystemModal();
+  const modal=document.createElement('div');
+  modal.id='systemModal';
+  modal.className='sys-modal show';
+  modal.onclick=(e)=>{if(e.target===modal) closeSystemModal();};
+  modal.innerHTML=`<div class="sys-dialog" onclick="event.stopPropagation()">
+    <div class="sys-top"><div class="sys-head"><b>엑셀 다운로드 승인</b><span>개인정보 포함 데이터 다운로드 전 필수 확인</span></div><button class="sys-close" onclick="closeSystemModal()">×</button></div>
+    <div class="sys-body">
+      <div style="font-size:16px;font-weight:800;margin-bottom:6px">${title}을(를) 다운로드할까요?</div>
+      <div style="font-size:12px;color:var(--txt2);line-height:1.65;margin-bottom:14px">다운로드 사유와 계정 비밀번호를 입력해야 파일 생성이 진행됩니다. 실제 운영에서는 다운로드 이력, 사유, 대상 건수, 관리자 계정, IP가 감사 로그로 저장됩니다.</div>
+      <div class="confirm-summary" style="margin-bottom:14px">
+        <div class="confirm-item"><b>${title}</b><span>다운로드 대상</span></div>
+        <div class="confirm-item"><b>${Number(count||0).toLocaleString()}건</b><span>현재 검색 조건 기준</span></div>
+      </div>
+      <div class="fg" style="margin-bottom:10px"><label>다운로드 사유</label><textarea id="exportReason" placeholder="예: 월간 후원자 현황 보고, 사업 안내 대상 검토, 감사 대응 자료 등"></textarea></div>
+      <div class="fg"><label>계정 비밀번호 재확인</label><input id="exportPw" type="password" placeholder="관리자 비밀번호 입력"></div>
+      <div class="notice-box" style="margin-top:12px">개인정보가 포함된 파일은 다운로드 후 별도 보관·전달·파기 기준에 따라 관리해야 합니다.</div>
+      <div class="sys-actions"><button class="btn btn-g" onclick="closeSystemModal()">취소</button><button class="btn btn-p" onclick="const r=document.getElementById('exportReason').value.trim();const pw=document.getElementById('exportPw').value.trim();if(!r||!pw){toast('다운로드 사유와 비밀번호를 입력해 주세요');return;}toast('엑셀 다운로드 요청이 기록되었습니다');closeSystemModal();">다운로드 요청</button></div>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+}
+
+function openEmailEditorModal(){
+  closeSystemModal();
+  const modal=document.createElement('div');
+  modal.id='systemModal';
+  modal.className='sys-modal show';
+  modal.onclick=(e)=>{if(e.target===modal) closeSystemModal();};
+  modal.innerHTML=`<div class="sys-dialog large" onclick="event.stopPropagation()">
+    <div class="sys-top"><div class="sys-head"><b>이메일 상세 편집</b><span>HTML 메일 본문, 이미지, 링크, 버튼, 개인화 변수를 전체 화면에서 편집</span></div><button class="sys-close" onclick="closeSystemModal()">×</button></div>
+    <div class="sys-body">
+      <div class="full-editor-layout">
+        <div>
+          <div class="fg" style="margin-bottom:12px"><label>이메일 제목</label><input value="[NC문화재단] {{회원명}}님을 위한 6월 주요 소식 안내"></div>
+          <div class="editor-toolbar"><button class="ed-btn">B</button><button class="ed-btn"><i>I</i></button><button class="ed-btn">H1</button><button class="ed-btn">H2</button><button class="ed-btn">목록</button><button class="ed-btn">구분선</button><button class="ed-btn">링크</button><button class="ed-btn">이미지</button><button class="ed-btn">버튼</button><button class="ed-btn">표</button><button class="ed-btn">미리보기</button></div>
+          <div class="full-email-editor" contenteditable="true">
+            <h1>NC문화재단 6월 주요 소식</h1>
+            <p><b>{{회원명}}</b>님, 안녕하세요.</p>
+            <p>관심 분야와 참여 이력을 기준으로 이번 달 재단 소식을 안내드립니다. 본 메일은 회원님의 수신 동의 범위 안에서 발송됩니다.</p>
+            <ul><li>프로젝토리 신규 프로그램 및 멤버십 안내</li><li>FAIR AI 행사와 콘텐츠 소식</li><li>나의AAC 캠페인 및 이용 안내</li><li>기부·후원 참여 및 기부금 영수증 안내</li></ul>
+            <p><a class="cta" href="#">자세히 보기</a></p>
+            <p style="font-size:12px;color:#6b7280">수신을 원하지 않으면 마이페이지에서 수신 동의를 변경할 수 있습니다.</p>
+          </div>
+        </div>
+        <aside class="full-editor-side">
+          <h4>개인화 변수</h4><div class="chip-list"><span class="ch">{{회원명}}</span><span class="ch">{{관심서비스}}</span><span class="ch">{{최근참여}}</span><span class="ch">{{기부상태}}</span><span class="ch">{{상세링크}}</span></div>
+          <h4>삽입 요소</h4><div class="chip-list"><span class="ch">이미지 배너</span><span class="ch">CTA 버튼</span><span class="ch">행사 카드</span><span class="ch">후원 안내</span><span class="ch">구독 해지 문구</span></div>
+          <h4>검수 항목</h4><div style="font-size:11px;color:var(--txt2);line-height:1.8">✓ 수신동의 대상 확인<br>✓ 개인정보 포함 여부 확인<br>✓ 링크 정상 동작 확인<br>✓ 모바일 메일 가독성 확인<br>✓ 발송 제외 대상 반영</div>
+        </aside>
+      </div>
+      <div class="sys-actions"><button class="btn btn-g" onclick="toast('이메일 미리보기 생성')">미리보기</button><button class="btn btn-g" onclick="toast('상세 편집 내용 임시저장 완료')">임시저장</button><button class="btn btn-p" onclick="toast('이메일 편집 내용이 적용되었습니다');closeSystemModal();">적용</button></div>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+}
+function renderChannelEditor(channel){
+  if(channel==='email'){
+    return `<div class="fg" style="grid-column:1/-1"><label>이메일 제목</label><input value="[NC문화재단] {{회원명}}님을 위한 6월 주요 소식 안내"></div>
+    <div class="fg" style="grid-column:1/-1"><label style="display:flex;align-items:center;gap:8px">이메일 본문 편집기 <button type="button" class="btn btn-g mini-email-open" onclick="openEmailEditorModal()">자세히 보기</button></label>
+      <div class="editor-toolbar">
+        <button class="ed-btn">B</button><button class="ed-btn"><i>I</i></button><button class="ed-btn">H1</button><button class="ed-btn">목록</button><button class="ed-btn">링크</button><button class="ed-btn">이미지</button><button class="ed-btn">버튼</button><button class="ed-btn">{{회원명}}</button><button class="ed-btn">{{관심서비스}}</button><button class="ed-btn" onclick="openEmailEditorModal()">전체 편집</button>
+      </div>
+      <div class="email-editor" contenteditable="true"><h2>NC문화재단 6월 주요 소식</h2><p><b>{{회원명}}</b>님, 안녕하세요.</p><p>관심 분야와 참여 이력을 기준으로 이번 달 재단 소식을 안내드립니다.</p><ul><li>프로젝토리 신규 프로그램 안내</li><li>FAIR AI 행사 및 콘텐츠 소식</li><li>나의AAC 캠페인 및 이용 안내</li><li>기부·후원 참여 안내</li></ul><p><button style="background:#00b4d8;color:#0c0f16;border:0;border-radius:5px;padding:8px 14px;font-weight:700">자세히 보기</button></p></div>
+    </div>`;
+  }
+  if(channel==='sms'){
+    return `<div class="fg" style="grid-column:1/-1"><label>문자 내용</label><textarea class="msg-editor" maxlength="90">[NC문화재단] {{회원명}}님, 관심 사업과 관련된 6월 주요 소식을 안내드립니다. 자세히 보기: https://nccf.or.kr</textarea><div class="char-counter">SMS 90자 기준 / 장문 전환 가능</div></div>`;
+  }
+  return `<div class="fg" style="grid-column:1/-1"><label>알림톡 템플릿</label><select><option>사업 안내 기본 템플릿</option><option>기부금 영수증 안내 템플릿</option><option>프로그램 신청 안내 템플릿</option></select></div><div class="fg" style="grid-column:1/-1"><label>알림톡 내용</label><textarea class="msg-editor">안녕하세요 {{회원명}}님.\nNC문화재단 {{관심서비스}} 관련 안내드립니다.\n\n- 안내 내용: 6월 주요 소식\n- 확인 링크: {{상세링크}}</textarea><div class="char-counter">승인된 알림톡 템플릿 기반 편집</div></div><div class="fg" style="grid-column:1/-1"><label>버튼 설정</label><input value="자세히 보기 | {{상세링크}}"></div>`;
+}
+function renderCommunications(ct){
+  const targetCount=getFiltered(members).filter(m=>S.consentFilter!=='reject').length;
+  const channel=S.commChannel||'email';
+  const mode=S.sendMode||'now';
+  const channelName=channel==='email'?'이메일':channel==='sms'?'문자':'알림톡';
+  ct.innerHTML=`<div class="scr on">
+    <div class="sg">
+      <div class="sc" style="--sc-c:var(--pri)"><div class="sc-l">수신 동의 회원</div><div class="sc-v">7,962</div><div class="sc-d up">전체 62.1%</div></div>
+      <div class="sc" style="--sc-c:var(--mint)"><div class="sc-l">이번달 발송</div><div class="sc-v">18건</div><div class="sc-d up">이메일 12 · 문자 6</div></div>
+      <div class="sc" style="--sc-c:var(--amber)"><div class="sc-l">예약 발송</div><div class="sc-v">8건</div><div class="sc-d nt">대기 중</div></div>
+      <div class="sc" style="--sc-c:var(--purple)"><div class="sc-l">평균 반응률</div><div class="sc-v">24.8%</div><div class="sc-d up">▲ 3.4%</div></div>
+    </div>
+    <div class="tabs"><div class="tab ${channel==='email'?'on':''}" onclick="S.commChannel='email';render()">이메일</div><div class="tab ${channel==='sms'?'on':''}" onclick="S.commChannel='sms';render()">문자</div><div class="tab ${channel==='kakao'?'on':''}" onclick="S.commChannel='kakao';render()">알림톡</div></div>
+    <div class="comm-grid">
+      <div class="cd"><div class="cd-h"><div class="cd-t">${channelName} 편집 화면</div><div class="chips"><span class="ch ${mode==='now'?'on':''}" onclick="S.sendMode='now';render()">즉시발송</span><span class="ch ${mode==='schedule'?'on':''}" onclick="S.sendMode='schedule';render()">예약발송</span></div></div><div class="cd-b">
+        ${mode==='now'?'<div class="notice-box">즉시 발송은 확인 후 바로 발송 대기열에 등록됩니다. 실제 운영에서는 권한자 승인 또는 발송 전 확인 절차를 두는 것이 좋습니다.</div>':''}
+        <div class="sender-grid">
+          <div class="fg"><label>발신명</label><input value="NC문화재단"></div>
+          <div class="fg"><label>발송 시점</label><input type="${mode==='schedule'?'datetime-local':'text'}" value="${mode==='schedule'?'2026-06-03T10:00':'즉시 발송'}" ${mode==='now'?'readonly':''}></div>
+          <div class="fg"><label>발송 유형</label><select><option>${channelName} 안내</option><option>행사 안내</option><option>후원 캠페인</option><option>서비스 공지</option></select></div>
+          <div class="fg"><label>대상 그룹</label><select><option>현재 회원 검색 조건 대상</option><option>VIP 고객</option><option>후원자</option><option>AAC 관심 고객</option><option>수신동의 고객 전체</option></select></div>
+        </div>
+        <div class="filter-grid" style="grid-template-columns:1fr;margin-bottom:12px">${renderChannelEditor(channel)}</div>
+        <div class="recipient-box">
+          <div class="recipient-card"><b>${targetCount}</b><span>현재 검색 조건 대상</span></div>
+          <div class="recipient-card"><b>${channel==='email'?'오픈율':channel==='sms'?'클릭률':'확인율'}</b><span>발송 후 성과 추적</span></div>
+          <div class="recipient-card"><b>${mode==='schedule'?'예약':'즉시'}</b><span>발송 방식</span></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-p" onclick="confirmSend()">${mode==='schedule'?'예약 등록':'즉시 발송'}</button><button class="btn btn-g" onclick="toast('테스트 발송 완료')">테스트 발송</button><button class="btn btn-g" onclick="toast('임시저장 완료')">임시저장</button></div>
+      </div></div>
+      <div class="cd"><div class="cd-h"><div class="cd-t">발송 미리보기</div><span class="bd bd-pri">${channelName}</span></div><div class="cd-b"><div class="preview-box"><div class="preview-subj">${channel==='email'?'[NC문화재단] 6월 주요 소식 안내':channel==='sms'?'문자 미리보기':'알림톡 미리보기'}</div><div class="preview-body">${channel==='email'?'<b>이메일 에디터 기반 발송</b><br><br>본문 편집, 이미지/링크/버튼 삽입, 개인화 변수 적용, 반응률 추적을 전제로 구성합니다.':channel==='sms'?'짧은 문구 중심으로 즉시 전달합니다.<br><br>[NC문화재단] 김서연님, 관심 사업과 관련된 6월 주요 소식을 안내드립니다.':'승인된 템플릿 기반으로 버튼과 변수를 조합해 발송합니다.'}</div></div></div></div>
+    </div>
+    <div class="cd"><div class="cd-h"><div class="cd-t">발송 이력</div></div><div class="cd-b" style="padding:0;overflow-x:auto"><table class="dt"><thead><tr><th>발송일</th><th>채널</th><th>제목</th><th>대상</th><th>발송수</th><th>상태</th><th>반응률</th></tr></thead><tbody>
+      ${[
+        ['2026-05-26 10:00','이메일','프로젝토리 프로그램 후속 안내','프로젝토리 멤버십',1240,'발송완료','31.2%'],
+        ['2026-05-24 14:00','문자','기부금 영수증 신청 안내','후원자',680,'발송완료','18.4%'],
+        ['2026-05-30 09:00','이메일','FAIR AI 행사 사전 안내','AI 관심',2100,'예약대기','-'],
+        ['2026-06-03 10:00','알림톡','나의AAC 캠페인 안내','AAC 관심',920,'예약대기','-']
+      ].map(r=>`<tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--txt3)">${r[0]}</td><td><span class="bd bd-pri">${r[1]}</span></td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4].toLocaleString()}</td><td><span class="bd ${r[5]==='발송완료'?'bd-mt':'bd-am'}">${r[5]}</span></td><td>${r[6]}</td></tr>`).join('')}
+    </tbody></table></div></div>
+  </div>`;
+}
+
+
+function renderBoards(ct){
+  const rows=[
+    ['홈페이지','공지사항','통합회원 1차 오픈 안내','게시중','2026-05-27','전체 방문자'],
+    ['홈페이지(채용)','채용공고','2026 하반기 채용 안내','게시중','2026-05-27','채용 지원자'],
+    ['FAIR AI','행사/소식','FAIR AI 컨퍼런스 참가 신청 안내','예약','2026-06-03','AI 관심 고객'],
+    ['프로젝토리','프로그램 공지','프로젝토리 멤버십 서류 제출 안내','게시중','2026-05-25','프로젝토리 회원'],
+    ['나의AAC','서비스 공지','앱 업데이트 및 태블릿 버전 개선 안내','검수중','2026-05-30','AAC 이용자'],
+    ['공통','FAQ','통합회원 가입·로그인 도움말','게시중','2026-05-20','전체 회원']
+  ];
+  ct.innerHTML=`<div class="scr on">
+    <div class="sg"><div class="sc" style="--sc-c:var(--pri)"><div class="sc-l">운영 게시판</div><div class="sc-v">12개</div><div class="sc-d nt">서비스별 통합 관리</div></div><div class="sc" style="--sc-c:var(--mint)"><div class="sc-l">게시중 글</div><div class="sc-v">248</div><div class="sc-d up">이번달 +42</div></div><div class="sc" style="--sc-c:var(--amber)"><div class="sc-l">검수 대기</div><div class="sc-v">7</div><div class="sc-d dn">확인 필요</div></div><div class="sc" style="--sc-c:var(--purple)"><div class="sc-l">예약 게시</div><div class="sc-v">5</div><div class="sc-d nt">자동 게시 예정</div></div></div>
+    <div class="cd" style="margin-bottom:12px"><div class="cd-h"><div><div class="cd-t">게시판 공통 관리</div><div style="font-size:13px;color:var(--txt2);margin-top:4px">홈페이지, FAIR AI, 프로젝토리, 나의AAC의 공지·FAQ·문의 게시판을 한 곳에서 관리하는 예시 화면</div></div><button class="btn btn-p" onclick="toast('게시글 작성 화면')">+ 게시글 작성</button></div><div class="cd-b" style="padding:0;overflow-x:auto"><table class="dt"><thead><tr><th>서비스</th><th>게시판</th><th>제목</th><th>상태</th><th>게시/예약일</th><th>노출 대상</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td><span class="bd ${r[3]==='게시중'?'bd-mt':r[3]==='예약'?'bd-am':'bd-pri'}">${r[3]}</span></td><td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--txt3)">${r[4]}</td><td>${r[5]}</td></tr>`).join('')}</tbody></table></div></div>
+    <div class="dg"><div class="cd"><div class="cd-h"><div class="cd-t">게시글 작성/검수 흐름</div></div><div class="cd-b"><div class="timeline"><div class="tl-i"><div class="tl-d" style="background:var(--pri)"></div><div class="tl-t">작성</div><div class="tl-e">서비스·게시판 선택 후 제목/본문/첨부파일 등록</div></div><div class="tl-i"><div class="tl-d" style="background:var(--amber)"></div><div class="tl-t">검수</div><div class="tl-e">개인정보 포함 여부, 링크, 게시 범위 확인</div></div><div class="tl-i"><div class="tl-d" style="background:var(--mint)"></div><div class="tl-t">게시</div><div class="tl-e">즉시 게시 또는 예약 게시 처리</div></div></div></div></div><div class="cd"><div class="cd-h"><div class="cd-t">게시판별 관리 항목</div></div><div class="cd-b"><div class="ir"><div class="il">공지사항</div><div class="iv">서비스별 공지, 점검 안내, 정책 변경</div></div><div class="ir"><div class="il">FAQ</div><div class="iv">회원가입, 로그인, 기부, 영수증 도움말</div></div><div class="ir"><div class="il">문의/민원</div><div class="iv">고객 문의, 답변 상태, 담당자 배정</div></div></div></div></div>
+  </div>`;
+}
+
+function renderNewsletters(ct){
+  const rows=[
+    ['2026-05-26','스티비','6월 재단 주요 소식','7,820','발송완료','38.2%','6.4%'],
+    ['2026-05-18','스티비','프로젝토리 후속 프로그램 안내','1,240','발송완료','42.1%','8.9%'],
+    ['2026-06-03','스티비','FAIR AI 행사 사전 안내','2,100','예약대기','-','-'],
+    ['2026-06-10','스티비','나의AAC 업데이트 소식','920','초안','-','-']
+  ];
+  ct.innerHTML=`<div class="scr on">
+    <div class="sg"><div class="sc" style="--sc-c:var(--pri)"><div class="sc-l">스티비 연동 상태</div><div class="sc-v">정상</div><div class="sc-d up">API 연결</div></div><div class="sc" style="--sc-c:var(--mint)"><div class="sc-l">이번달 뉴스레터</div><div class="sc-v">4건</div><div class="sc-d nt">발송 2 · 예약 1 · 초안 1</div></div><div class="sc" style="--sc-c:var(--amber)"><div class="sc-l">평균 오픈율</div><div class="sc-v">40.1%</div><div class="sc-d up">▲ 4.8%</div></div><div class="sc" style="--sc-c:var(--purple)"><div class="sc-l">CRM 매칭 대상</div><div class="sc-v">9,482</div><div class="sc-d nt">수신동의 기준</div></div></div>
+    <div class="cd" style="margin-bottom:12px"><div class="cd-h"><div><div class="cd-t">스티비 뉴스레터 발송 기록</div><div style="font-size:13px;color:var(--txt2);margin-top:4px">뉴스레터 본문 작성과 실제 발송은 스티비에서 수행하고, CRM에서는 발송 대상·이력·성과 데이터를 연동 관리</div></div><button class="btn btn-g" onclick="toast('스티비 관리자 화면으로 이동')">스티비에서 작성</button></div><div class="cd-b" style="padding:0;overflow-x:auto"><table class="dt"><thead><tr><th>발송일</th><th>플랫폼</th><th>뉴스레터명</th><th>발송 대상</th><th>상태</th><th>오픈율</th><th>클릭률</th></tr></thead><tbody>${rows.map(r=>`<tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--txt3)">${r[0]}</td><td><span class="bd bd-pri">${r[1]}</span></td><td>${r[2]}</td><td>${Number(r[3].replace(',','')).toLocaleString()}명</td><td><span class="bd ${r[4]==='발송완료'?'bd-mt':r[4]==='예약대기'?'bd-am':'bd-mu'}">${r[4]}</span></td><td>${r[5]}</td><td>${r[6]}</td></tr>`).join('')}</tbody></table></div></div>
+    <div class="dg"><div class="cd"><div class="cd-h"><div class="cd-t">CRM 연동 데이터</div></div><div class="cd-b"><div class="ir"><div class="il">대상 그룹</div><div class="iv">수신동의자, 관심 태그, 참여 이력 기준으로 스티비 발송 대상 매칭</div></div><div class="ir"><div class="il">발송 이력</div><div class="iv">발송일, 캠페인명, 발송수, 반송/수신거부 상태 저장</div></div><div class="ir"><div class="il">성과 지표</div><div class="iv">오픈율, 클릭률, 링크별 반응, 후속 참여/기부 전환 추적</div></div></div></div><div class="cd"><div class="cd-h"><div class="cd-t">운영 방식</div></div><div class="cd-b"><div class="notice-box">CRM은 뉴스레터 편집기가 아니라 관리 기준 시스템입니다. 본문 제작은 스티비에서 진행하고, CRM은 고객 세그먼트·동의 상태·발송 결과를 통합 관리합니다.</div></div></div></div>
+  </div>`;
+}
+
+
+function renderSocialChannels(ct){
+  const channels=[
+    {cls:'instagram-main', icon:'IG', name:'인스타그램(대표)', platform:'Instagram', source:'Meta Instagram Graph API', mode:'브랜드/캠페인 반응 중심', metrics:[['팔로워','18,420'],['월 도달','124,800'],['반응률','4.8%']], bars:[['릴스',76],['피드',34],['스토리',22]], focus:'대표 계정은 재단 브랜드 인지도, 캠페인 반응, 기부·AAC 관심 태그 전환을 중심으로 봅니다.', heads:['콘텐츠','주요 성과','CRM 연결'], rows:[['재단 캠페인 릴스','도달 42,300 · 저장 312','AAC·기부 관심'],['통합회원 안내 피드','클릭 96 · 가입 랜딩 유입','회원가입 유입'],['행사 현장 스토리','반응 410 · 답장 58','행사 참여 관심']]},
+    {cls:'instagram-proj', icon:'P', name:'인스타그램(프로젝토리)', platform:'Instagram', source:'Meta Instagram Graph API', mode:'프로그램 모집/참여 전환 중심', metrics:[['팔로워','9,860'],['월 도달','76,400'],['반응률','6.2%']], bars:[['모집 안내',68],['활동 스케치',88],['리마인드',41]], focus:'프로젝토리 계정은 모집 공지, 서류 제출 리마인드, 프로그램 재참여 후보를 분리해 관리합니다.', heads:['캠페인 단계','반응 지표','CRM 연결'], rows:[['모집 안내 피드','도달 22,100 · 클릭 188','신청 전환 후보'],['활동 스케치 릴스','반응 2,010 · 저장 244','프로젝토리 관심'],['서류 제출 스토리','답장 71 · 링크 520','멤버십 진행']]},
+    {cls:'youtube', icon:'▶', name:'유튜브 채널', platform:'YouTube', source:'YouTube Analytics API / Data API', mode:'영상 시청시간·주제 관심 중심', metrics:[['구독자','12,300'],['월 조회','58,200'],['평균 시청','03:42']], bars:[['롱폼',72],['쇼츠',54],['유입',39]], focus:'유튜브는 단순 조회수보다 시청 시간, 평균 시청 지속시간, 주제별 관심도를 CRM 태그로 연결합니다.', heads:['영상 유형','시청 성과','CRM 연결'], rows:[['AAC 사용법 소개','조회 21,400 · 평균 04:15','AAC 관심'],['FAIR AI 쇼츠','조회 15,800 · 평균 00:38','AI 관심'],['재단 사업 소개','조회 9,700 · 평균 03:10','후원 후보']]},
+    {cls:'blog', icon:'B', name:'네이버 블로그', platform:'Naver Blog', source:'Naver Search API / 블로그 통계 연동', mode:'검색 유입·키워드 관심 중심', metrics:[['이웃','관리 연동'],['월 조회','32,600'],['평균 체류','02:18']], bars:[['검색 유입',81],['체류',58],['랜딩 클릭',27]], focus:'블로그는 검색 키워드, 포스트 체류, 랜딩 링크 클릭을 기준으로 관심 분야와 후속 안내 대상을 분류합니다.', heads:['포스트','유입/체류','CRM 연결'], rows:[['나의AAC 활용 사례','조회 8,400 · 체류 03:05','AAC 검색 유입'],['프로젝토리 모집 안내','조회 6,900 · 체류 02:40','신청 관심'],['기부금 영수증 안내','조회 4,200 · 체류 01:55','기부 문의']]}
+  ];
+  const cardHtml=channels.map(c=>`<div class="social-card ${c.cls}">
+    <div class="social-head"><div><div class="social-title"><div class="social-icon">${c.icon}</div>${c.name}</div><div class="social-sub">${c.source}<br>${c.mode}</div></div><span class="social-pill">${c.platform}</span></div>
+    <div class="social-body">
+      <div class="social-metrics">${c.metrics.map(m=>`<div class="social-metric"><div class="label">${m[0]}</div><div class="value">${m[1]}</div></div>`).join('')}</div>
+      <div class="social-mini-bars">${c.bars.map(b=>`<div class="social-mini-row"><div>${b[0]}</div><div class="social-mini-track"><div class="social-mini-fill" style="width:${b[1]}%"></div></div><div>${b[1]}%</div></div>`).join('')}</div>
+      <div class="social-focus">CRM 활용: ${c.focus}</div>
+      <table class="dt"><thead><tr>${c.heads.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${c.rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td><span class="tag tag-news">${r[2]}</span></td></tr>`).join('')}</tbody></table>
+    </div>
+  </div>`).join('');
+  ct.innerHTML=`<div class="scr on">
+    <div class="notice-box" style="margin-bottom:14px">자체 보유 채널은 공식 API 또는 계정 권한 기반 연동으로 성과 데이터를 수집하는 구조가 적절합니다. 비공식 크롤링은 플랫폼 약관·접근 제한·개인정보 이슈가 있으므로, CRM에는 공개 반응 데이터와 자사 채널 운영 성과 중심으로 연동하는 방식이 안전합니다.</div>
+    <div class="sg"><div class="sc" style="--sc-c:var(--purple)"><div class="sc-l">연동 채널</div><div class="sc-v">4개</div><div class="sc-d nt">인스타그램 2 · 유튜브 · 블로그</div></div><div class="sc" style="--sc-c:var(--mint)"><div class="sc-l">월간 도달</div><div class="sc-v">292K</div><div class="sc-d up">▲ 18.4%</div></div><div class="sc" style="--sc-c:var(--amber)"><div class="sc-l">CRM 관심 태그 전환</div><div class="sc-v">1,842</div><div class="sc-d up">캠페인 반응 기반</div></div><div class="sc" style="--sc-c:var(--pri)"><div class="sc-l">수집 기준</div><div class="sc-v">API</div><div class="sc-d nt">계정 권한 기반</div></div></div>
+    <div class="social-grid">${cardHtml}</div>
+    <div class="dg"><div class="cd"><div class="cd-h"><div class="cd-t">플랫폼별 수집 항목 예시</div></div><div class="cd-b"><div class="ir"><div class="il">Instagram</div><div class="iv">게시물/릴스/스토리 성과, 도달, 노출, 좋아요, 댓글, 저장, 링크 클릭, 해시태그 반응</div></div><div class="ir"><div class="il">YouTube</div><div class="iv">영상별 조회수, 시청 시간, 평균 시청 지속시간, 유입 경로, 구독 전환, 콘텐츠별 관심 주제</div></div><div class="ir"><div class="il">Naver Blog</div><div class="iv">검색 유입 키워드, 포스트 조회, 체류, 공감/댓글, 링크 클릭, 캠페인 랜딩 유입</div></div></div></div><div class="cd"><div class="cd-h"><div class="cd-t">CRM 연결 방식</div></div><div class="cd-b"><div class="ir"><div class="il">개인 식별</div><div class="iv">SNS 이용자 개인을 무리하게 식별하지 않고, 자사 랜딩 링크·UTM·회원 전환 시점 기준으로 연결</div></div><div class="ir"><div class="il">세그먼트</div><div class="iv">AAC 관심, AI 관심, 프로젝토리 관심, 기부 후보 등 콘텐츠 반응 기반 태그화</div></div><div class="ir"><div class="il">운영 로그</div><div class="iv">API 수집 성공/실패, 수집 시각, 채널별 데이터 기준일을 관리자 로그로 보관</div></div></div></div></div>
+  </div>`;
+}
+
+function renderVipCustomers(ct){
+  const rows=[['윤서아','후원자','정기기부 120만원','행사 4회','VIP A','전담 관리'],['강도윤','회원','정기기부 60만원','프로그램 3회','VIP B','후원 유지'],['임채원','후원자','기관 관계자','프로젝토리 정회원','VIP B','관계 관리'],['박민지','후원자','일시기부 50만원','AAC 보호자','VIP C','캠페인 안내']];
+  ct.innerHTML=`<div class="scr on"><div class="sg"><div class="sc" style="--sc-c:var(--amber)"><div class="sc-l">VIP 고객</div><div class="sc-v">126</div><div class="sc-d up">후원·참여 상위군</div></div><div class="sc" style="--sc-c:var(--mint)"><div class="sc-l">정기 후원 VIP</div><div class="sc-v">48</div><div class="sc-d nt">관계 유지 대상</div></div><div class="sc" style="--sc-c:var(--pri)"><div class="sc-l">기관 관계자</div><div class="sc-v">22</div><div class="sc-d nt">파트너 관리</div></div><div class="sc" style="--sc-c:var(--purple)"><div class="sc-l">우선 안내 대상</div><div class="sc-v">73</div><div class="sc-d up">행사·후원 캠페인</div></div></div><div class="cd"><div class="cd-h"><div class="cd-t">VIP 고객 목록</div><button class="btn btn-p" onclick="go('communications')">대상 발송</button></div><div class="cd-b" style="padding:0;overflow-x:auto"><table class="dt"><thead><tr><th>고객명</th><th>유형</th><th>기여도</th><th>참여 이력</th><th>등급</th><th>관리 방향</th></tr></thead><tbody>${rows.map(r=>`<tr><td><div class="uc2"><div class="av2">${r[0][0]}</div>${r[0]}</div></td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td><span class="customer-grade grade-vip">${r[4]}</span></td><td>${r[5]}</td></tr>`).join('')}</tbody></table></div></div></div>`;
+}
+function renderRiskCustomers(ct){
+  const rows=[['한예진','탈퇴 회원','수신거부 후 반복 문의','낮음','이력 확인 후 응대'],['최하은','휴면','서류 미제출 반복 안내 필요','중간','자동 안내 제외 검토'],['오태영','휴면','장기 미접속·반송 이력','낮음','재활성 캠페인 제한'],['익명 민원','비회원','동일 민원 반복 접수','높음','관리자 승인 후 응대']];
+  ct.innerHTML=`<div class="scr on"><div class="notice-box">고객을 부정적으로 낙인찍기보다, 반복 민원·수신거부·반송·권리행사 이력을 관리하는 운영 리스크 메뉴로 표현하는 것이 안전합니다.</div><div class="sg"><div class="sc" style="--sc-c:var(--coral)"><div class="sc-l">주의 고객</div><div class="sc-v">14</div><div class="sc-d dn">관리 필요</div></div><div class="sc" style="--sc-c:var(--amber)"><div class="sc-l">반복 문의</div><div class="sc-v">8</div><div class="sc-d nt">최근 30일</div></div><div class="sc" style="--sc-c:var(--txt)"><div class="sc-l">수신거부/반송</div><div class="sc-v">41</div><div class="sc-d nt">발송 제외 검토</div></div><div class="sc" style="--sc-c:var(--pri)"><div class="sc-l">권리행사 요청</div><div class="sc-v">5</div><div class="sc-d nt">열람·삭제 등</div></div></div><div class="cd"><div class="cd-h"><div class="cd-t">주의 고객 관리 목록</div><button class="btn btn-g" onclick="toast('관리 이력 등록')">이력 등록</button></div><div class="cd-b" style="padding:0;overflow-x:auto"><table class="dt"><thead><tr><th>대상</th><th>구분</th><th>관리 사유</th><th>위험도</th><th>응대 기준</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td><span class="customer-grade grade-risk">${r[3]}</span></td><td>${r[4]}</td></tr>`).join('')}</tbody></table></div></div></div>`;
+}
+
+// ═══════════════ CONSENT ═══════════════
+function renderConsent(ct){
+  ct.innerHTML=`<div class="scr on">
+    <div class="sg">
+      <div class="sc" style="--sc-c:var(--mint)"><div class="sc-l">전체 동의율</div><div class="sc-v">87.3%</div><div class="sc-d up">▲ 2.1%</div></div>
+      <div class="sc" style="--sc-c:var(--amber)"><div class="sc-l">마케팅 동의율</div><div class="sc-v">62.1%</div><div class="sc-d dn">▼ 1.3%</div></div>
+      <div class="sc" style="--sc-c:var(--acc)"><div class="sc-l">이번달 동의 변경</div><div class="sc-v">342건</div><div class="sc-d up">▲ 15건</div></div>
+      <div class="sc" style="--sc-c:var(--txt)"><div class="sc-l">약관 버전</div><div class="sc-v" style="color:var(--txt)">v3.2</div><div class="sc-d nt">2026-05-01 개정</div></div>
+    </div>
+    <div class="cd" style="margin-bottom:12px"><div class="cd-h"><div class="cd-t">약관·동의 항목</div><button class="btn btn-p" onclick="toast('약관 추가 화면')">+ 약관 추가</button></div>
+    <div class="cd-b" style="padding:0;overflow-x:auto">
+      <table class="dt"><thead><tr><th>항목명</th><th>버전</th><th>필수여부</th><th>동의율</th><th>최종수정</th><th>상태</th></tr></thead>
+      <tbody>${consentItems.map(c=>{
+        const rc=c.req==='필수'?'bd-pri':'bd-mu';
+        const sc2=c.status==='활성'?'bd-mt':'bd-mu';
+        const barC=c.rate>80?'var(--mint)':c.rate>50?'var(--amber)':c.rate>0?'var(--coral)':'var(--txt4)';
+        return `<tr><td style="font-weight:500">${c.name}</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--txt3)">${c.ver}</td>
+          <td><span class="bd ${rc}">${c.req}</span></td>
+          <td><div style="display:flex;align-items:center;gap:8px"><div class="pb"><div class="pf" style="width:${c.rate}%;background:${barC}"></div></div><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:${barC}">${c.rate>0?c.rate+'%':'—'}</span></div></td>
+          <td style="color:var(--txt3);font-family:'JetBrains Mono',monospace;font-size:11px">${c.date}</td>
+          <td><span class="bd ${sc2}">${c.status}</span></td></tr>`;
+      }).join('')}</tbody></table>
+    </div></div>
+    <div class="dg">
+      <div class="cd"><div class="cd-h"><div class="cd-t">최근 동의 변경</div></div><div class="cd-b" style="padding:8px 16px">
+        <div class="ar"><div class="ar-t">10:23</div><div class="ar-e"><strong>김서연</strong> <span style="color:var(--mint)">마케팅 동의 → 동의</span></div></div>
+        <div class="ar"><div class="ar-t">09:45</div><div class="ar-e"><strong>이준호</strong> <span style="color:var(--coral)">제3자 제공 → 미동의</span></div></div>
+        <div class="ar"><div class="ar-t">09:12</div><div class="ar-e"><strong>박민지</strong> <span style="color:var(--mint)">위치정보 → 동의</span></div></div>
+        <div class="ar"><div class="ar-t">08:30</div><div class="ar-e"><strong>정우진</strong> <span style="color:var(--coral)">마케팅 → 미동의</span></div></div>
+      </div></div>
+      <div class="cd"><div class="cd-h"><div class="cd-t">약관 버전 이력</div></div><div class="cd-b" style="padding:8px 16px">
+        <div class="vr"><span class="vt">v3.2</span><span style="color:var(--txt3);font-size:11px;width:80px">2026-05-01</span><span>개인정보 처리방침 개정</span><span class="bd bd-mt" style="margin-left:auto">현행</span></div>
+        <div class="vr"><span class="vt">v3.1</span><span style="color:var(--txt3);font-size:11px;width:80px">2026-03-15</span><span>마케팅 동의 문구 수정</span><span class="bd bd-mu" style="margin-left:auto">만료</span></div>
+        <div class="vr"><span class="vt">v3.0</span><span style="color:var(--txt3);font-size:11px;width:80px">2026-01-01</span><span>통합회원 전환 적용</span><span class="bd bd-mu" style="margin-left:auto">만료</span></div>
+      </div></div>
+    </div>
+  </div>`;
+}
+
+// ═══════════════ UTILS ═══════════════
+function getFiltered(list){
+  let d=[...list];
+  if(S.search){const q=S.search.toLowerCase();d=d.filter(m=>m.name.includes(q)||m.email.toLowerCase().includes(q)||m.phone.includes(q));}
+  if(S.filter!=='all')d=d.filter(m=>m.type===S.filter);
+  if(S.statusFilter&&S.statusFilter!=='all')d=d.filter(m=>m.status===S.statusFilter);
+  if(S.svcFilter&&S.svcFilter!=='all')d=d.filter(m=>m.svcs[S.svcFilter]);
+  if(S.consentFilter==='agree')d=d.filter(m=>m.tags.includes('뉴스레터 반응 높음'));
+  if(S.consentFilter==='reject')d=d.filter(m=>!m.tags.includes('뉴스레터 반응 높음'));
+  if(S.donationFilter==='donor')d=d.filter(m=>m.type==='후원자'||(m.svcs.home&&m.svcs.home.donation&&m.svcs.home.donation!=='없음'));
+  if(S.donationFilter==='prospect')d=d.filter(m=>m.tags.includes('기부 가능성 높음')&&!(m.type==='후원자'));
+  if(S.donationFilter==='none')d=d.filter(m=>!(m.svcs.home&&m.svcs.home.donation&&m.svcs.home.donation!=='없음'));
+  if(S.dateFrom)d=d.filter(m=>m.date>=S.dateFrom);
+  if(S.dateTo)d=d.filter(m=>m.date<=S.dateTo);
+  if(S.tagFilter)d=d.filter(m=>m.tags.includes(S.tagFilter));
+  return d;
+}
+function resetMemberFilters(){S.search='';S.filter='all';S.statusFilter='all';S.svcFilter='all';S.consentFilter='all';S.donationFilter='all';S.dateFrom='';S.dateTo='';S.tagFilter='';S.page=1;render();}
+function pagHtml(total){
+  if(total<=1)return '';
+  let h='<div class="pag">';
+  for(let i=1;i<=total;i++){
+    if(total>7&&i>3&&i<total-1){if(i===4)h+='<div class="pg" style="cursor:default">…</div>';continue;}
+    h+=`<div class="pg ${i===S.page?'on':''}" onclick="S.page=${i};render()">${i}</div>`;
+  }
+  return h+'</div>';
+}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+
+function loginDemo(){document.getElementById('mfaPanel').classList.add('show');document.querySelector('#mfaPanel input')?.focus();}
+function hideMfa(){document.getElementById('mfaPanel').classList.remove('show');}
+function closeMfa(e){if(e.target.id==='mfaPanel')hideMfa();}
+function nextOtp(el){el.value=el.value.replace(/\D/g,'').slice(0,1);if(el.value&&el.nextElementSibling)el.nextElementSibling.focus();}
+function nextOtp(el){el.value=el.value.replace(/[^0-9]/g,'').slice(0,1);if(el.value.length>=1){const inputs=[...document.querySelectorAll('.mfa-code input')];const i=inputs.indexOf(el);if(inputs[i+1])inputs[i+1].focus();}}
+function otpBackspace(e,el){if(e.key==='Backspace'&&!el.value){const inputs=[...document.querySelectorAll('.mfa-code input')];const i=inputs.indexOf(el);if(inputs[i-1])inputs[i-1].focus();}}
+function completeLogin(){document.getElementById('mfaPanel').classList.remove('show');document.getElementById('login').style.display='none';document.getElementById('app').classList.add('ready');toast('문자 2차 인증 완료 · 관리자 로그인 완료');}
+
+// Init
+render();
+</script>
+</body>
+</html>
